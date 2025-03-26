@@ -1,107 +1,67 @@
 #include "../headers/reencoder_utf_16.h"
 
-/**
- * @brief Checks if a provided UTF-16 string is valid.
- *
- * Checks for surrogate order, overlong encoding, and premature string endings.
- *
- * @param[in] string UTF-16 string to be checked. Should be represented as an array of uint16_t.
- * @param[in] length Length of the provided string. Length is not number of bytes, but number of uint16_t elements.
- *
- * @return Unsigned integer representing the outcome of the check. Corresponds to index in `REENCODER_UTF16_OUTCOME_ARR`.
- */
-static unsigned int reencoder_utf16_is_valid(const uint16_t* string, size_t length);
-
-/**
- * @brief Returns the length of a UTF-16 string.
- *
- * Length is not number of bytes, but number of uint16_t elements.
- *
- * @param[in] string UTF-16 string to be checked. Should be represented as an array of uint16_t. Must be null-terminated (0x0000).
- *
- * @return Length of the provided string.
- */
-static size_t reencoder_strlen_utf16(const uint16_t* string);
-
-/**
- * @brief Writes a UTF-16 string to a buffer with swapped endianness.
- *
- * Since UTF-16 strings are represented in memory as 16-bit code units, the endianness of the system must be considered.
- * To preserve intended byte order, this function writes to a 1-byte wide buffer (uint8_t).
- *
- * @param[in] src UTF-16 string to be written.
- * @param[out] dest Buffer to be written to.
- * @param[in] length Length of the provided string. Length is not number of bytes, but number of uint16_t elements.
- *
- * @return void
- */
-static void reencoder_utf16_write_buffer_swap_endian(const uint16_t* src, uint8_t* dest, size_t length);
-
 ReencoderUnicodeStruct* reencoder_utf16_parse_uint16(const uint16_t* string, enum ReencoderEncodeType target_endian) {
-	if (target_endian != UTF16BE && target_endian != UTF16LE) {
+	if (target_endian != UTF_16BE && target_endian != UTF_16LE) {
 		return NULL;
 	}
 
-	ReencoderUnicodeStruct* struct_utf16_str = _reencoder_unicode_struct_init(target_endian);
-	if (struct_utf16_str == NULL) {
-		return NULL;
-	}
+	size_t string_length_uint16 = _reencoder_strlen_utf16(string);
+	size_t string_size_bytes = string_length_uint16 * sizeof(uint16_t);
 
-	size_t string_length_uint16 = reencoder_strlen_utf16(string);
-	size_t string_size_bytes = string_length_uint16 * 2;
-	struct_utf16_str->string_buffer = (uint8_t*)malloc(string_size_bytes + 2);
-	if (struct_utf16_str->string_buffer == NULL) {
-		reencoder_unicode_struct_free(struct_utf16_str);
-		return NULL;
-	}
-
-	uint8_t sys_is_little_endian = _reencoder_is_system_little_endian();
-	if ((sys_is_little_endian && target_endian == UTF16BE) || (!sys_is_little_endian && target_endian == UTF16LE)) {
-		reencoder_utf16_write_buffer_swap_endian(string, struct_utf16_str->string_buffer, string_length_uint16);
-	}
-	else {
-		memcpy(struct_utf16_str->string_buffer, string, string_size_bytes);
-	}
-
-	struct_utf16_str->string_buffer[string_size_bytes] = '\0';
-	struct_utf16_str->string_buffer[string_size_bytes + 1] = '\0';
-
-	struct_utf16_str->string_validity = reencoder_utf16_is_valid(string, string_length_uint16);
-	if (struct_utf16_str->string_validity != REENCODER_UTF16_VALID) {
-		return struct_utf16_str;
-	}
-
-	struct_utf16_str->num_chars = string_length_uint16;
-	struct_utf16_str->num_bytes = string_size_bytes;
+	ReencoderUnicodeStruct* struct_utf16_str = _reencoder_unicode_struct_express_populate(
+		target_endian,
+		(const void*) string,
+		string_size_bytes,
+		_reencoder_utf16_is_valid(string, string_length_uint16),
+		string_length_uint16
+	);
 
 	return struct_utf16_str;
 }
 
-ReencoderUnicodeStruct* reencoder_utf16_parse_uint8(const uint8_t* string, size_t bytes, enum ReencoderEncodeType target_endian) {
-	uint16_t* string_uint16 = (uint16_t*)malloc((bytes * 2) + 2);
+ReencoderUnicodeStruct* reencoder_utf16_parse_uint8(
+	const uint8_t* string, size_t bytes, enum ReencoderEncodeType source_endian, enum ReencoderEncodeType target_endian
+) {
+	// it's ok to malloc first even if number of bytes is odd,
+	// no risk of buffer overflow as logic of copying will skip the last byte
+	// odd is incorrect behaviour anyways
+	uint16_t* string_uint16 = (uint16_t*)malloc(bytes + sizeof(uint16_t));
 	if (string_uint16 == NULL) {
 		return NULL;
 	}
+	_reencoder_utf16_uint16_from_uint8(string_uint16, string, bytes, source_endian);
 
-	memcpy(string_uint16, string, bytes);
-	string_uint16[bytes] = 0x0000;
+	// odd number of bytes is impossible for UTF-16
+	if (bytes % 2 != 0) {
+		ReencoderUnicodeStruct* struct_utf16_str = _reencoder_unicode_struct_express_populate(
+			_reencoder_is_system_little_endian() ? UTF_16LE : UTF_16BE,
+			(const void*)string_uint16,
+			bytes,
+			REENCODER_UTF16_ODD_LENGTH,
+			0
+		);
+
+		return struct_utf16_str;
+	}
 
 	ReencoderUnicodeStruct* struct_utf16_str = reencoder_utf16_parse_uint16(string_uint16, target_endian);
 
+	// clean up other allocated memory
 	free(string_uint16);
 
 	return struct_utf16_str;
 }
 
 const char* reencoder_utf16_outcome_as_str(unsigned int outcome) {
-	if (outcome >= (sizeof(REENCODER_UTF16_OUTCOME_ARR) / sizeof(REENCODER_UTF16_OUTCOME_ARR[0]))) {
+	unsigned int outcome_offset = outcome - _REENCODER_UTF16_PARSE_OFFSET;
+	if (outcome_offset >= (sizeof(_REENCODER_UTF16_OUTCOME_ARR) / sizeof(_REENCODER_UTF16_OUTCOME_ARR[0]))) {
 		return NULL;
 	}
 
-	return REENCODER_UTF16_OUTCOME_ARR[outcome];
+	return _REENCODER_UTF16_OUTCOME_ARR[outcome_offset];
 }
 
-static unsigned int reencoder_utf16_is_valid(const uint16_t* string, size_t length) {
+unsigned int _reencoder_utf16_is_valid(const uint16_t* string, size_t length) {
 	// https://datatracker.ietf.org/doc/html/rfc2781/
 
 	for (size_t i = 0; i < length; i++) {
@@ -142,7 +102,7 @@ static unsigned int reencoder_utf16_is_valid(const uint16_t* string, size_t leng
 	return REENCODER_UTF16_VALID;
 }
 
-static size_t reencoder_strlen_utf16(const uint16_t* string) {
+size_t _reencoder_strlen_utf16(const uint16_t* string) {
 	const uint16_t* ptr_start = string;
 	const uint16_t* ptr_end = ptr_start;
 
@@ -153,10 +113,29 @@ static size_t reencoder_strlen_utf16(const uint16_t* string) {
 	return ptr_end - ptr_start;
 }
 
-static void reencoder_utf16_write_buffer_swap_endian(const uint16_t* src, uint8_t* dest, size_t length) {
+void _reencoder_utf16_write_buffer_swap_endian(uint8_t* dest, const uint16_t* src, size_t length) {
 	for (size_t i = 0; i < length; i++) {
 		uint16_t val = src[i];
 		val = (val >> 8) | (val << 8); // swap bytes
 		memcpy(dest + (2 * i), &val, 2);
 	}
+}
+
+void _reencoder_utf16_uint16_from_uint8(uint16_t* dest, const uint8_t* src, size_t bytes, enum ReencoderEncodeType source_endian) {
+	if (source_endian != UTF_16BE && source_endian != UTF_16LE) {
+		return;
+	}
+
+	if (_reencoder_is_system_little_endian() == (source_endian == UTF_16LE)) {
+		memcpy(dest, src, bytes);
+	}
+	else {
+		for (size_t i = 0; i < bytes / sizeof(uint16_t); i++) {
+			uint8_t high = src[i * 2]; // MSB in BE, LSB in LE
+			uint8_t low = src[(i * 2) + 1]; // LSB in BE, MSB in LE
+			dest[i] = (high << 8) | low;   // swap bytes
+		}
+	}
+
+	dest[bytes / sizeof(uint16_t)] = 0x0000;
 }
