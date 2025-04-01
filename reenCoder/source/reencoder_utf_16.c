@@ -10,7 +10,7 @@ ReencoderUnicodeStruct* reencoder_utf16_parse_uint16(const uint16_t* string, enu
 
 	ReencoderUnicodeStruct* struct_utf16_str = _reencoder_unicode_struct_express_populate(
 		target_endian,
-		(const void*) string,
+		(const void*)string,
 		string_size_bytes,
 		_reencoder_utf16_is_valid(string, string_length_uint16),
 		string_length_uint16
@@ -22,6 +22,10 @@ ReencoderUnicodeStruct* reencoder_utf16_parse_uint16(const uint16_t* string, enu
 ReencoderUnicodeStruct* reencoder_utf16_parse_uint8(
 	const uint8_t* string, size_t bytes, enum ReencoderEncodeType source_endian, enum ReencoderEncodeType target_endian
 ) {
+	if (target_endian != UTF_16BE && target_endian != UTF_16LE) {
+		return NULL;
+	}
+
 	// it's ok to malloc first even if number of bytes is odd,
 	// no risk of buffer overflow as logic of copying will skip the last byte
 	// odd is incorrect behaviour anyways
@@ -48,6 +52,120 @@ ReencoderUnicodeStruct* reencoder_utf16_parse_uint8(
 
 	// clean up other allocated memory
 	free(string_uint16);
+
+	return struct_utf16_str;
+}
+
+ReencoderUnicodeStruct* reencoder_utf16_parse_from_utf8(const uint8_t* string, enum ReencoderEncodeType target_endian) {
+	if (target_endian != UTF_16BE && target_endian != UTF_16LE) {
+		return NULL;
+	}
+
+	size_t string_length = strlen(string);
+	size_t string_size_bytes = string_length;
+
+	// check if utf8 is valid
+	unsigned int input_utf8_validity = _reencoder_utf8_is_valid(string);
+
+	// invalid utf8
+	if (input_utf8_validity != REENCODER_UTF8_VALID) {
+		ReencoderUnicodeStruct* struct_utf8_str = _reencoder_unicode_struct_express_populate(
+			UTF_8,
+			(const void*)string,
+			string_size_bytes,
+			input_utf8_validity,
+			0
+		);
+
+		return struct_utf8_str;
+	}
+
+	// begin conversion utf-8 -> utf-16
+	size_t utf16_index = 0;
+	size_t utf16_buffer_size = _REENCODER_BASE_STRING_BYTE_SIZE;
+	uint16_t* utf16_output_buffer = (uint16_t*)malloc(utf16_buffer_size);
+	if (utf16_output_buffer == NULL) {
+		return NULL;
+	}
+
+	// assumes utf8 is well-formed, since we already checked earlier
+	const uint8_t* ptr_read = string;
+	while (*ptr_read) {
+		// grow buffer if out of space
+		if ((utf16_index * sizeof(uint16_t)) + 4 > utf16_buffer_size) {
+			uint16_t* temp_ptr_to_utf16_buffer = utf16_output_buffer;
+			size_t new_size = utf16_buffer_size * _REENCODER_BASE_STRING_GROW_RATE;
+			utf16_output_buffer = (uint16_t*)realloc(utf16_output_buffer, new_size);
+			if (utf16_output_buffer == NULL) {
+				free(temp_ptr_to_utf16_buffer);
+				return NULL;
+			}
+			utf16_buffer_size = new_size;
+		}
+
+		uint32_t codepoint = 0;
+		unsigned int byte_length = _reencoder_utf8_determine_length_from_first_byte(*ptr_read);
+
+		switch (byte_length) {
+		case 1:
+			codepoint = *ptr_read;
+			break;
+		case 2:
+			// 110xxxyy 10yyzzzz
+			codepoint =
+				((ptr_read[0] & 0b00011111) << 6) |
+				(ptr_read[1] & 0b00111111);
+			break;
+		case 3:
+			// 1110wwww 10xxxxyy 10yyzzzz
+			codepoint =
+				((ptr_read[0] & 0b00001111) << 12) |
+				((ptr_read[1] & 0b00111111) << 6) |
+				(ptr_read[2] & 0b00111111);
+			break;
+		case 4:
+			// 11110uvv 10vvwwww 10xxxxyy 10yyzzzz
+			codepoint =
+				((ptr_read[0] & 0x00000111) << 18) |
+				((ptr_read[1] & 0b00111111) << 12) |
+				((ptr_read[2] & 0b00111111) << 6) |
+				(ptr_read[3] & 0b00111111);
+			break;
+		}
+		ptr_read += byte_length;
+
+		// encode UTF-16
+		if (codepoint <= 0xFFFF) {
+			utf16_output_buffer[utf16_index++] = (uint16_t)codepoint;
+		}
+		else {
+			// convert to surrogate pair
+			// https://en.wikipedia.org/wiki/UTF-16#Code_points_from_U+010000_to_U+10FFFF
+			codepoint -= 0x10000;
+			utf16_output_buffer[utf16_index++] = 0xD800 | (codepoint >> 10);
+			utf16_output_buffer[utf16_index++] = 0xDC00 | (codepoint & 0x3FF);
+		}
+	}
+
+	// grow buffer if out of space (for null-terminator)
+	if ((utf16_index * sizeof(uint16_t)) + sizeof(uint16_t) > utf16_buffer_size) {
+		uint16_t* temp_ptr_to_utf16_buffer = utf16_output_buffer;
+		size_t new_size = utf16_buffer_size + sizeof(uint16_t);
+		utf16_output_buffer = (uint16_t*)realloc(utf16_output_buffer, new_size);
+		if (utf16_output_buffer == NULL) {
+			free(temp_ptr_to_utf16_buffer);
+			return NULL;
+		}
+		utf16_buffer_size = new_size;
+	}
+	// null-terminate UTF-16 output
+	utf16_output_buffer[utf16_index] = 0x0000;
+
+	// create utf-16 struct
+	ReencoderUnicodeStruct* struct_utf16_str = reencoder_utf16_parse_uint16(utf16_output_buffer, target_endian);
+
+	// clean up other allocated memory
+	free(utf16_output_buffer);
 
 	return struct_utf16_str;
 }

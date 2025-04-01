@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <string.h>
 #include "reencoder_utf_common.h"
+#include "reencoder_utf_8.h"
 
 /**
  * @brief Parses a given UTF-16 uint16_t* sequence and loads it into a `ReencoderUnicodeStruct`.
@@ -21,7 +22,6 @@
  * @retval NULL If memory allocation fails or an invalid `target_endian` is provided.
  */
 ReencoderUnicodeStruct* reencoder_utf16_parse_uint16(const uint16_t* string, enum ReencoderEncodeType target_endian);
-
 
 /**
  * @brief Parses a given UTF-16 uint8_t* sequence and loads it into a `ReencoderUnicodeStruct`.
@@ -44,6 +44,23 @@ ReencoderUnicodeStruct* reencoder_utf16_parse_uint8(
 	const uint8_t* string, size_t bytes, enum ReencoderEncodeType source_endian, enum ReencoderEncodeType target_endian
 );
 
+/**
+ * @brief Parses a given UTF-8 uint8_t* sequence and converts it to UTF-16 before loading it into a `ReencoderUnicodeStruct`.
+ *
+ * Input string must be represented as uint8_t*.
+ * The returned `ReencoderUnicodeStruct` will be fully initialised if the string is valid.
+ * If the provided UTF-8 string is invalid, a ReencoderUnicodeStruct handling the UTF-8 string directly will be returned.
+ * ReencoderUnicodeStruct->num_chars will be 0 if the string is invalid (both UTF-8 and UTF-16).
+ *
+ * The returned `ReencoderUnicodeStruct` must be freed using `reencoder_unicode_struct_free()` once it is no longer needed
+ *
+ * @param[in] string Input UTF-8 string. Must be null-terminated (0x00).
+ *
+ * @return Pointer to a `ReencoderUnicodeStruct` containing parsed string data for a UTF-16 string.
+ * @retval Pointer to a `ReencoderUnicodeStruct` containing parsed string data for a UTF-8 string if the provided UTF-8 string is invalid.
+ * @retval NULL If memory allocation fails or an invalid `target_endian` is provided.
+ */
+ReencoderUnicodeStruct* reencoder_utf16_parse_from_utf8(const uint8_t* string, enum ReencoderEncodeType target_endian);
 
 /**
  * @brief Returns a human-readable string for a given UTF-16 parse outcome code.
@@ -54,7 +71,6 @@ ReencoderUnicodeStruct* reencoder_utf16_parse_uint8(
  * @retval NULL If provided outcome is out of bounds.
  */
 const char* reencoder_utf16_outcome_as_str(unsigned int outcome);
-
 
 /**
  * @brief Checks if a provided UTF-16 string is valid.
@@ -68,7 +84,6 @@ const char* reencoder_utf16_outcome_as_str(unsigned int outcome);
  */
 unsigned int _reencoder_utf16_is_valid(const uint16_t* string, size_t length);
 
-
 /**
  * @brief Returns the length of a UTF-16 string.
  *
@@ -79,7 +94,6 @@ unsigned int _reencoder_utf16_is_valid(const uint16_t* string, size_t length);
  * @return Length of the provided string.
  */
 size_t _reencoder_strlen_utf16(const uint16_t* string);
-
 
 /**
  * @brief Converts a UTF-16 string represented in uint8_t to standardised uint16_t.

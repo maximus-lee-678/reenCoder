@@ -100,12 +100,16 @@ ReencoderUnicodeStruct* _reencoder_unicode_struct_init(enum ReencoderEncodeType 
  *
  * Intended for internal use by reencoder_utf_* functions.
  * string_type is copied as-is.
- * string_buffer is updated dynamically based on string_type; UTF_8 is copied directly while UTF_16 and UTF_32? undergo any needed endianness conversion.
+ * string_buffer is updated dynamically based on string_type; UTF_8 is copied directly while UTF_16 and UTF_32 undergo any needed endianness conversion.
  * string_validity is copied as-is.
  * num_chars is populated to the provided value IF the string is valid, otherwise it is left as default 0.
  * num_bytes is copied as-is (from string_buffer_bytes).
  *
  * @param[in] string_type The type of the string to be parsed. Must be one of the `ReencoderEncodeType` enum values.
+ * @param[in] string_buffer Provided string buffer to be copied into the `ReencoderUnicodeStruct`. Data type should match the provided string_type.
+ * @param[in] string_buffer_bytes Byte size of string buffer.
+ * @param[in] string_validity String validity parsed value.
+ * @param[in] num_chars Number of characters present in string buffer. Only populated if string_validity is valid.
  *
  * @return Pointer to a default `ReencoderUnicodeStruct`.
  *
@@ -151,7 +155,7 @@ uint8_t _reencoder_is_system_little_endian();
 /**
  * @brief Writes a UTF-16 uint16_t string to a buffer with swapped endianness.
  *
- * To be actually declared in reencoder_utf_16.c.
+ * Officially declared in reencoder_utf_16.c.
  * Since UTF-16 strings are represented in memory as 16-bit code units, the endianness of the system must be considered.
  * To preserve intended byte order, this function writes to a 1-byte wide buffer (uint8_t).
  *

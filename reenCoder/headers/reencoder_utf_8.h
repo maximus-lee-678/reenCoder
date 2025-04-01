@@ -22,7 +22,6 @@
  */
 ReencoderUnicodeStruct* reencoder_utf8_parse(const uint8_t* string);
 
-
 /**
  * @brief Parses a given UTF-16 uint16_t* sequence and converts it to UTF-8 before loading it into a `ReencoderUnicodeStruct`.
  *
@@ -40,7 +39,6 @@ ReencoderUnicodeStruct* reencoder_utf8_parse(const uint8_t* string);
  * @retval NULL If memory allocation fails.
  */
 ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf16(const uint16_t* string);
-
 
 /**
  * @brief Parses a given UTF-16 uint8_t* sequence and converts it to UTF-8 before loading it into a ReencoderUnicodeStruct.
@@ -62,7 +60,6 @@ ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf16(const uint16_t* string);
  */
 ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf16_uint8(const uint8_t* string, size_t bytes, enum ReencoderEncodeType source_endian);
 
-
 /**
  * @brief Returns a human-readable string for a given UTF-8 parse outcome code.
  *
@@ -72,7 +69,6 @@ ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf16_uint8(const uint8_t* str
  * @retval NULL If provided outcome is out of bounds.
  */
 const char* reencoder_utf8_outcome_as_str(unsigned int outcome);
-
 
 /**
  * @brief Checks if a given UTF-8 string contains multibyte sequences.
@@ -91,7 +87,6 @@ const char* reencoder_utf8_outcome_as_str(unsigned int outcome);
  */
 uint8_t reencoder_utf8_contains_multibyte(const uint8_t* string);
 
-
 /**
  * @brief Checks if a provided UTF-8 string is valid.
  *
@@ -101,4 +96,14 @@ uint8_t reencoder_utf8_contains_multibyte(const uint8_t* string);
  *
  * @return Unsigned integer representing the outcome of the check. Corresponds to index in `REENCODER_UTF8_OUTCOME_ARR` after offsets.
  */
-static unsigned int _reencoder_utf8_is_valid(const uint8_t* string);
+unsigned int _reencoder_utf8_is_valid(const uint8_t* string);
+
+/**
+ * @brief Given a single UTF-8 starting byte, determines how many bytes this character is.
+ *
+ * @param[in] first_byte UTF-8 starting byte.
+ *
+ * @return Unsigned integer 1-4.
+ * @retval 0 If leading byte is invalid.
+ */
+unsigned int _reencoder_utf8_determine_length_from_first_byte(uint8_t first_byte);

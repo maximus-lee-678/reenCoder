@@ -1,16 +1,6 @@
 #include "../headers/reencoder_utf_8.h"
 
 /**
- * @brief Given a single UTF-8 starting byte, determines how many bytes this character is.
- *
- * @param[in] first_byte UTF-8 starting byte.
- *
- * @return Unsigned integer 1-4.
- * @retval 0 If leading byte is invalid.
- */
-static unsigned int reencoder_utf8_determine_length_from_first_byte(uint8_t first_byte);
-
-/**
  * @brief Determines the number of UTF-8 characters, not bytes in a string.
  *
  * @param[in] string UTF-8 string to be checked. Should be represented as an array of uint8_t.
@@ -19,14 +9,11 @@ static unsigned int reencoder_utf8_determine_length_from_first_byte(uint8_t firs
  */
 static size_t reencoder_utf8_determine_num_chars(const uint8_t* string);
 
-
 ReencoderUnicodeStruct* reencoder_utf8_parse(const uint8_t* string) {
-	size_t string_length = strlen(string);
-
 	ReencoderUnicodeStruct* struct_utf8_str = _reencoder_unicode_struct_express_populate(
 		UTF_8,
-		(const void*) string,
-		string_length,
+		(const void*)string,
+		strlen(string),
 		_reencoder_utf8_is_valid(string),
 		reencoder_utf8_determine_num_chars(string)
 	);
@@ -36,7 +23,7 @@ ReencoderUnicodeStruct* reencoder_utf8_parse(const uint8_t* string) {
 
 ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf16(const uint16_t* string) {
 	size_t string_length = _reencoder_strlen_utf16(string);
-	size_t string_size_bytes = string_length * 2;
+	size_t string_size_bytes = string_length * sizeof(uint16_t);
 
 	// check if utf16 is valid
 	unsigned int input_utf16_validity = _reencoder_utf16_is_valid(string, _reencoder_strlen_utf16(string));
@@ -45,7 +32,7 @@ ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf16(const uint16_t* string) 
 	if (input_utf16_validity != REENCODER_UTF16_VALID) {
 		ReencoderUnicodeStruct* struct_utf16_str = _reencoder_unicode_struct_express_populate(
 			_reencoder_is_system_little_endian() ? UTF_16LE : UTF_16BE,
-			(const void*) string,
+			(const void*)string,
 			string_size_bytes,
 			input_utf16_validity,
 			0
@@ -178,7 +165,7 @@ const char* reencoder_utf8_outcome_as_str(unsigned int outcome) {
 uint8_t reencoder_utf8_contains_multibyte(const uint8_t* string) {
 	size_t examined_index = 0;
 	while (string[examined_index] != '\0') {
-		unsigned int current_utf8_length = reencoder_utf8_determine_length_from_first_byte(string[examined_index]);
+		unsigned int current_utf8_length = _reencoder_utf8_determine_length_from_first_byte(string[examined_index]);
 		switch (current_utf8_length) {
 		case 0:
 			return 0;
@@ -193,13 +180,13 @@ uint8_t reencoder_utf8_contains_multibyte(const uint8_t* string) {
 	return 1;
 }
 
-static unsigned int _reencoder_utf8_is_valid(const uint8_t* string) {
+unsigned int _reencoder_utf8_is_valid(const uint8_t* string) {
 	// https://datatracker.ietf.org/doc/html/rfc3629
 
 	size_t examined_index = 0;
 
 	while (string[examined_index] != '\0') {
-		unsigned int utf8_char_len = reencoder_utf8_determine_length_from_first_byte(string[examined_index]);
+		unsigned int utf8_char_len = _reencoder_utf8_determine_length_from_first_byte(string[examined_index]);
 		if (utf8_char_len == 0) {
 			return REENCODER_UTF8_ERR_INVALID_LEAD;
 		}
@@ -263,7 +250,7 @@ static unsigned int _reencoder_utf8_is_valid(const uint8_t* string) {
 	return REENCODER_UTF8_VALID; // valid UTF-8
 }
 
-static unsigned int reencoder_utf8_determine_length_from_first_byte(uint8_t first_byte) {
+unsigned int _reencoder_utf8_determine_length_from_first_byte(uint8_t first_byte) {
 	if ((first_byte & 0b10000000) == 0b00000000) // 0xxxxxxx ~ 1-byte ASCII
 		return 1;
 	else if ((first_byte & 0x11100000) == 0b11000000) // 110xxxxx ~ 2-byte sequence
@@ -281,7 +268,7 @@ static size_t reencoder_utf8_determine_num_chars(const uint8_t* string) {
 	size_t num_utf8_chars = 0;
 
 	while (string[examined_index] != '\0') {
-		unsigned int utf8_char_len = reencoder_utf8_determine_length_from_first_byte(string[examined_index]);
+		unsigned int utf8_char_len = _reencoder_utf8_determine_length_from_first_byte(string[examined_index]);
 		if (utf8_char_len == 0) {
 			return 0;
 		}
