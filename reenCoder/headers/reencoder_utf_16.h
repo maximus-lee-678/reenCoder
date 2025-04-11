@@ -63,16 +63,6 @@ ReencoderUnicodeStruct* reencoder_utf16_parse_uint8(
 ReencoderUnicodeStruct* reencoder_utf16_parse_from_utf8(const uint8_t* string, enum ReencoderEncodeType target_endian);
 
 /**
- * @brief Returns a human-readable string for a given UTF-16 parse outcome code.
- *
- * @param[in] outcome Unsigned integer found at `ReencoderUnicodeStruct->string_validity`.
- *
- * @return String representation of the outcome.
- * @retval NULL If provided outcome is out of bounds.
- */
-const char* reencoder_utf16_outcome_as_str(unsigned int outcome);
-
-/**
  * @brief Checks if a provided UTF-16 string is valid.
  *
  * Checks for surrogate order, overlong encoding, and premature string endings.
@@ -93,10 +83,14 @@ unsigned int _reencoder_utf16_is_valid(const uint16_t* string, size_t length);
  *
  * @return Length of the provided string.
  */
-size_t _reencoder_strlen_utf16(const uint16_t* string);
+size_t _reencoder_utf16_strlen(const uint16_t* string);
 
 /**
  * @brief Converts a UTF-16 string represented in uint8_t to standardised uint16_t.
+ * 
+ * If an odd number of bytes is provided, the function will promote the last byte to a full code unit.
+ * The byte will be treated as the "low" byte, i.e. the last byte in the uint16_t buffer will be 0x00XX.
+ * Be mindful that this may (probably will) produce an invalid UTF-16 string, so be sure to check the validity of the string afterwards.
  *
  * @param[out] dest Output UTF-16 string uint16_t buffer.
  * @param[in] src Input UTF-16 string. Need not be null-terminated since 0x00 is valid in UTF-16 when represented in 1 byte sequences.

@@ -5,7 +5,7 @@ ReencoderUnicodeStruct* reencoder_utf16_parse_uint16(const uint16_t* string, enu
 		return NULL;
 	}
 
-	size_t string_length_uint16 = _reencoder_strlen_utf16(string);
+	size_t string_length_uint16 = _reencoder_utf16_strlen(string);
 	size_t string_size_bytes = string_length_uint16 * sizeof(uint16_t);
 
 	ReencoderUnicodeStruct* struct_utf16_str = _reencoder_unicode_struct_express_populate(
@@ -26,10 +26,9 @@ ReencoderUnicodeStruct* reencoder_utf16_parse_uint8(
 		return NULL;
 	}
 
-	// it's ok to malloc first even if number of bytes is odd,
-	// no risk of buffer overflow as logic of copying will skip the last byte
-	// odd is incorrect behaviour anyways
-	uint16_t* string_uint16 = (uint16_t*)malloc(bytes + sizeof(uint16_t));
+	// always malloc a multiple of 2 bytes, going higher if needed
+	size_t bytes_adjusted = bytes + (bytes % sizeof(uint16_t));
+	uint16_t* string_uint16 = (uint16_t*)malloc(bytes_adjusted + sizeof(uint16_t));
 	if (string_uint16 == NULL) {
 		return NULL;
 	}
@@ -170,15 +169,6 @@ ReencoderUnicodeStruct* reencoder_utf16_parse_from_utf8(const uint8_t* string, e
 	return struct_utf16_str;
 }
 
-const char* reencoder_utf16_outcome_as_str(unsigned int outcome) {
-	unsigned int outcome_offset = outcome - _REENCODER_UTF16_PARSE_OFFSET;
-	if (outcome_offset >= (sizeof(_REENCODER_UTF16_OUTCOME_ARR) / sizeof(_REENCODER_UTF16_OUTCOME_ARR[0]))) {
-		return NULL;
-	}
-
-	return _REENCODER_UTF16_OUTCOME_ARR[outcome_offset];
-}
-
 unsigned int _reencoder_utf16_is_valid(const uint16_t* string, size_t length) {
 	// https://datatracker.ietf.org/doc/html/rfc2781/
 
@@ -220,7 +210,7 @@ unsigned int _reencoder_utf16_is_valid(const uint16_t* string, size_t length) {
 	return REENCODER_UTF16_VALID;
 }
 
-size_t _reencoder_strlen_utf16(const uint16_t* string) {
+size_t _reencoder_utf16_strlen(const uint16_t* string) {
 	const uint16_t* ptr_start = string;
 	const uint16_t* ptr_end = ptr_start;
 
@@ -231,29 +221,50 @@ size_t _reencoder_strlen_utf16(const uint16_t* string) {
 	return ptr_end - ptr_start;
 }
 
-void _reencoder_utf16_write_buffer_swap_endian(uint8_t* dest, const uint16_t* src, size_t length) {
-	for (size_t i = 0; i < length; i++) {
-		uint16_t val = src[i];
-		val = (val >> 8) | (val << 8); // swap bytes
-		memcpy(dest + (2 * i), &val, 2);
-	}
-}
-
 void _reencoder_utf16_uint16_from_uint8(uint16_t* dest, const uint8_t* src, size_t bytes, enum ReencoderEncodeType source_endian) {
 	if (source_endian != UTF_16BE && source_endian != UTF_16LE) {
 		return;
 	}
 
+	size_t bytes_adjusted = bytes + (bytes % sizeof(uint16_t));
+	size_t code_units = bytes_adjusted / sizeof(uint16_t);
+
 	if (_reencoder_is_system_little_endian() == (source_endian == UTF_16LE)) {
 		memcpy(dest, src, bytes);
 	}
 	else {
-		for (size_t i = 0; i < bytes / sizeof(uint16_t); i++) {
-			uint8_t high = src[i * 2]; // MSB in BE, LSB in LE
-			uint8_t low = src[(i * 2) + 1]; // LSB in BE, MSB in LE
-			dest[i] = (high << 8) | low;   // swap bytes
+		for (size_t i = 0; i < code_units - 1; i++) {
+			uint8_t high = src[i * sizeof(uint16_t)]; // MSB in BE, LSB in LE
+			uint8_t low = src[(i * sizeof(uint16_t)) + 1]; // LSB in BE, MSB in LE
+			
+			dest[i] = (uint16_t)((high << 8) | low);   // swap bytes
+		}
+
+		// last unit is well-formed here
+		if (bytes == bytes_adjusted) {
+			uint8_t high = src[(code_units - 1) * sizeof(uint16_t)]; // MSB in BE, LSB in LE
+			uint8_t low = src[((code_units - 1) * sizeof(uint16_t)) + 1]; // LSB in BE, MSB in LE
+
+			dest[code_units - 1] = (uint16_t)((high << 8) | low);   // swap bytes
 		}
 	}
 
-	dest[bytes / sizeof(uint16_t)] = 0x0000;
+	// if odd number of bytes, promote the lone byte to the last code unit with msb padding
+	if (bytes != bytes_adjusted) {
+		uint8_t high = 0x00;
+		uint8_t low = src[bytes - 1];
+
+		dest[code_units - 1] = (uint16_t)((high << 8) | low);
+	}
+
+	dest[code_units] = 0x0000;
+}
+
+// extern function as defined in reencoder_utf_common.h
+void _reencoder_utf16_write_buffer_swap_endian(uint8_t* dest, const uint16_t* src, size_t length) {
+	for (size_t i = 0; i < length; i++) {
+		uint16_t val = src[i];
+		val = (val >> 8) | (val << 8); // swap bytes
+		memcpy(dest + (2 * i), &val, sizeof(uint16_t));
+	}
 }

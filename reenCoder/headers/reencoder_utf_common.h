@@ -60,8 +60,8 @@ static const char* _REENCODER_UTF8_OUTCOME_ARR[] = {
 	"[UTF-8: Invalid] Overlong encoding for 2-byte sequence",
 	"[UTF-8: Invalid] Overlong encoding for 3-byte sequence",
 	"[UTF-8: Invalid] Overlong encoding for 4-byte sequence",
-	"[UTF-8: Invalid] Out of valid Unicode range (U+10FFFF+)",
-	"[UTF-8: Invalid] Surrogate pair detected (U+D800–U+DFFF)"
+	"[UTF-8: Invalid] Out of valid Unicode range (>U+10FFFF)",
+	"[UTF-8: Invalid] Surrogate pair detected (U+D800-U+DFFF)"
 };
 
 #define _REENCODER_UTF16_PARSE_OFFSET 1600
@@ -78,6 +78,18 @@ static const char* _REENCODER_UTF16_OUTCOME_ARR[] = {
 	"[UTF-16: Invalid] Unpaired low surrogate",
 	"[UTF-16: Invalid] Overlong encoding for 4 byte sequence",
 	"[UTF-16: Invalid] String byte length not a multiple of 2"
+};
+
+#define _REENCODER_UTF32_PARSE_OFFSET 3200
+#define REENCODER_UTF32_VALID 3200
+#define REENCODER_UTF32_OUT_OF_RANGE 3201
+#define REENCODER_UTF32_SURROGATE_PAIR 3202
+#define REENCODER_UTF32_ODD_LENGTH 3203
+static const char* _REENCODER_UTF32_OUTCOME_ARR[] = {
+	"[UTF-32: Valid] Well-formed UTF-32 string",
+	"[UTF-32: Invalid] Out of valid Unicode range (>U+10FFFF)",
+	"[UTF-32: Invalid] Surrogate pair detected (U+D800-U+DFFF)",
+	"[UTF-32: Invalid] String byte length not a multiple of 4"
 };
 
 /**
@@ -151,6 +163,17 @@ const char* reencoder_encode_type_as_str(unsigned int encode_type);
  */
 uint8_t _reencoder_is_system_little_endian();
 
+/**
+ * @brief Returns a human-readable string for a given parse outcome code.
+ *
+ * @param[in] outcome Unsigned integer found at `ReencoderUnicodeStruct->string_validity`.
+ * @param[in] error_for_string_type The type of the string that was parsed. Must be one of the `ReencoderEncodeType` enum values.
+ *
+ * @return String representation of the outcome.
+ * @retval NULL If provided outcome is out of bounds.
+ * @retval NULL If an invalid enum is provided for error_for_string_type.
+ */
+const char* reencoder_outcome_as_str(unsigned int outcome, enum ReencoderEncodeType error_for_string_type);
 
 /**
  * @brief Writes a UTF-16 uint16_t string to a buffer with swapped endianness.
@@ -166,3 +189,18 @@ uint8_t _reencoder_is_system_little_endian();
  * @return void
  */
 extern void _reencoder_utf16_write_buffer_swap_endian(uint8_t* dest, const uint16_t* src, size_t length);
+
+/**
+ * @brief Writes a UTF-32 uint32_t string to a buffer with swapped endianness.
+ *
+ * Officially declared in reencoder_utf_32.c.
+ * Since UTF-32 strings are represented in memory as 32-bit code units, the endianness of the system must be considered.
+ * To preserve intended byte order, this function writes to a 1-byte wide buffer (uint8_t).
+ *
+ * @param[in] src UTF-32 string to be written.
+ * @param[out] dest Buffer to be written to.
+ * @param[in] length Length of the provided string. Length is not number of bytes, but number of uint32_t elements.
+ *
+ * @return void
+ */
+extern void _reencoder_utf32_write_buffer_swap_endian(uint8_t* dest, const uint32_t* src, size_t length);

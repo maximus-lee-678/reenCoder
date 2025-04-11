@@ -21,12 +21,12 @@ ReencoderUnicodeStruct* reencoder_utf8_parse(const uint8_t* string) {
 	return struct_utf8_str;
 }
 
-ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf16(const uint16_t* string) {
-	size_t string_length = _reencoder_strlen_utf16(string);
+ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf16_uint16(const uint16_t* string) {
+	size_t string_length = _reencoder_utf16_strlen(string);
 	size_t string_size_bytes = string_length * sizeof(uint16_t);
 
 	// check if utf16 is valid
-	unsigned int input_utf16_validity = _reencoder_utf16_is_valid(string, _reencoder_strlen_utf16(string));
+	unsigned int input_utf16_validity = _reencoder_utf16_is_valid(string, _reencoder_utf16_strlen(string));
 
 	// invalid utf16
 	if (input_utf16_validity != REENCODER_UTF16_VALID) {
@@ -88,21 +88,21 @@ ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf16(const uint16_t* string) 
 				utf8_output_buffer[utf8_index++] = code_unit & 0b01111111;
 			}
 			else if (code_unit < 0b100000000000) { // room for 11 bits
-				utf8_output_buffer[utf8_index++] = 0xC0 | ((code_unit >> 6) & 0b00011111);
-				utf8_output_buffer[utf8_index++] = 0x80 | (code_unit & 0b00111111);
+				utf8_output_buffer[utf8_index++] = 0b11000000 | ((code_unit >> 6) & 0b00011111); // take bits 6-10
+				utf8_output_buffer[utf8_index++] = 0b10000000 | (code_unit & 0b00111111); // take bits 0-5
 			}
 			else { // room for 16 bits
-				utf8_output_buffer[utf8_index++] = 0xE0 | ((code_unit >> 12) & 0b00001111);
-				utf8_output_buffer[utf8_index++] = 0x80 | ((code_unit >> 6) & 0b00111111);
-				utf8_output_buffer[utf8_index++] = 0x80 | (code_unit & 0b00111111);
+				utf8_output_buffer[utf8_index++] = 0b11100000 | ((code_unit >> 12) & 0b00001111); // take bits 12-15
+				utf8_output_buffer[utf8_index++] = 0b10000000 | ((code_unit >> 6) & 0b00111111); // take bits 6-11
+				utf8_output_buffer[utf8_index++] = 0b10000000 | (code_unit & 0b00111111); // take bits 0-5
 			}
 		}
 	}
 
 	// grow buffer if out of space (for null-terminator)
-	if (utf8_index + 1 > utf8_buffer_size) {
+	if (utf8_index + sizeof(uint8_t) > utf8_buffer_size) {
 		uint8_t* temp_ptr_to_utf8_buffer = utf8_output_buffer;
-		size_t new_size = utf8_buffer_size + 1;
+		size_t new_size = utf8_buffer_size + sizeof(uint8_t);
 		utf8_output_buffer = (uint8_t*)realloc(utf8_output_buffer, new_size);
 		if (utf8_output_buffer == NULL) {
 			free(temp_ptr_to_utf8_buffer);
@@ -123,13 +123,13 @@ ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf16(const uint16_t* string) 
 }
 
 ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf16_uint8(const uint8_t* string, size_t bytes, enum ReencoderEncodeType source_endian) {
-	// it's ok to malloc first even if number of bytes is odd,
-	// no risk of buffer overflow as logic of copying will skip the last byte
-	// odd is incorrect behaviour anyways
-	uint16_t* string_uint16 = (uint16_t*)malloc(bytes + sizeof(uint16_t));
+	// always malloc a multiple of 2 bytes, going higher if needed
+	size_t bytes_adjusted = bytes + (bytes % 2);
+	uint16_t* string_uint16 = (uint16_t*)malloc(bytes_adjusted + sizeof(uint16_t));
 	if (string_uint16 == NULL) {
 		return NULL;
 	}
+
 	_reencoder_utf16_uint16_from_uint8(string_uint16, string, bytes, source_endian);
 
 	// odd number of bytes is impossible for UTF-16
@@ -137,7 +137,7 @@ ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf16_uint8(const uint8_t* str
 		ReencoderUnicodeStruct* struct_utf16_str = _reencoder_unicode_struct_express_populate(
 			_reencoder_is_system_little_endian() ? UTF_16LE : UTF_16BE,
 			(const void*)string_uint16,
-			bytes,
+			bytes_adjusted,
 			REENCODER_UTF16_ODD_LENGTH,
 			0
 		);
@@ -145,21 +145,12 @@ ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf16_uint8(const uint8_t* str
 		return struct_utf16_str;
 	}
 
-	ReencoderUnicodeStruct* struct_utf16_str = reencoder_utf8_parse_from_utf16(string_uint16);
+	ReencoderUnicodeStruct* struct_utf16_str = reencoder_utf8_parse_from_utf16_uint16(string_uint16);
 
 	// clean up other allocated memory
 	free(string_uint16);
 
 	return struct_utf16_str;
-}
-
-const char* reencoder_utf8_outcome_as_str(unsigned int outcome) {
-	unsigned int outcome_offset = outcome - _REENCODER_UTF8_PARSE_OFFSET;
-	if (outcome_offset >= (sizeof(_REENCODER_UTF8_OUTCOME_ARR) / sizeof(_REENCODER_UTF8_OUTCOME_ARR[0]))) {
-		return NULL;
-	}
-
-	return _REENCODER_UTF8_OUTCOME_ARR[outcome_offset];
 }
 
 uint8_t reencoder_utf8_contains_multibyte(const uint8_t* string) {

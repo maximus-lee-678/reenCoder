@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+#include <math.h>
 #include "reencoder_utf_common.h"
 #include "reencoder_utf_16.h"
 
@@ -38,7 +39,7 @@ ReencoderUnicodeStruct* reencoder_utf8_parse(const uint8_t* string);
  * @retval Pointer to a `ReencoderUnicodeStruct` containing parsed string data for a UTF-16 string if the provided UTF-16 string is invalid.
  * @retval NULL If memory allocation fails.
  */
-ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf16(const uint16_t* string);
+ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf16_uint16(const uint16_t* string);
 
 /**
  * @brief Parses a given UTF-16 uint8_t* sequence and converts it to UTF-8 before loading it into a ReencoderUnicodeStruct.
@@ -60,15 +61,6 @@ ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf16(const uint16_t* string);
  */
 ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf16_uint8(const uint8_t* string, size_t bytes, enum ReencoderEncodeType source_endian);
 
-/**
- * @brief Returns a human-readable string for a given UTF-8 parse outcome code.
- *
- * @param[in] outcome Unsigned integer found at `ReencoderUnicodeStruct->string_validity`.
- *
- * @return String representation of the outcome.
- * @retval NULL If provided outcome is out of bounds.
- */
-const char* reencoder_utf8_outcome_as_str(unsigned int outcome);
 
 /**
  * @brief Checks if a given UTF-8 string contains multibyte sequences.

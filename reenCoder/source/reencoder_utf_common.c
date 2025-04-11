@@ -74,8 +74,36 @@ ReencoderUnicodeStruct* _reencoder_unicode_struct_express_populate(
 
 		break;
 	case UTF_32BE:
+		unicode_struct->string_buffer = (uint8_t*)malloc(string_buffer_bytes + sizeof(uint32_t));
+		if (unicode_struct->string_buffer == NULL) {
+			reencoder_unicode_struct_free(unicode_struct);
+			return NULL;
+		}
+
+		if (!_reencoder_is_system_little_endian()) {
+			memcpy(unicode_struct->string_buffer, (const uint32_t*)string_buffer, string_buffer_bytes);
+		}
+		else {
+			for (size_t i = 0; i < string_buffer_bytes / sizeof(uint32_t); i++) {
+				_reencoder_utf32_write_buffer_swap_endian(unicode_struct->string_buffer, (const uint32_t*)string_buffer, string_buffer_bytes / sizeof(uint32_t));
+			}
+		}
 		break;
 	case UTF_32LE:
+		unicode_struct->string_buffer = (uint8_t*)malloc(string_buffer_bytes + sizeof(uint32_t));
+		if (unicode_struct->string_buffer == NULL) {
+			reencoder_unicode_struct_free(unicode_struct);
+			return NULL;
+		}
+
+		if (_reencoder_is_system_little_endian()) {
+			memcpy(unicode_struct->string_buffer, (const uint32_t*)string_buffer, string_buffer_bytes);
+		}
+		else {
+			for (size_t i = 0; i < string_buffer_bytes / sizeof(uint32_t); i++) {
+				_reencoder_utf32_write_buffer_swap_endian(unicode_struct->string_buffer, (const uint32_t*)string_buffer, string_buffer_bytes / sizeof(uint32_t));
+			}
+		}
 		break;
 	default:
 		reencoder_unicode_struct_free(unicode_struct);
@@ -120,4 +148,35 @@ uint8_t _reencoder_is_system_little_endian() {
 
 	// if first byte is 0x02, it's little-endian
 	return (*(uint8_t*)&determinator == 0x02);
+}
+
+const char* reencoder_outcome_as_str(unsigned int outcome, enum ReencoderEncodeType error_for_string_type) {
+	if (error_for_string_type < 0 || error_for_string_type >= sizeof(_REENCODER_ENCODE_TYPE_ARR)) {
+		return NULL;
+	}
+
+	unsigned int outcome_offset = 0;
+	if (error_for_string_type == UTF_8) {
+		outcome_offset = outcome - _REENCODER_UTF8_PARSE_OFFSET;
+		if (outcome_offset >= (sizeof(_REENCODER_UTF8_OUTCOME_ARR) / sizeof(_REENCODER_UTF8_OUTCOME_ARR[0]))) {
+			return NULL;
+		}
+		return _REENCODER_UTF8_OUTCOME_ARR[outcome_offset];
+	}
+	else if (error_for_string_type == UTF_16LE || error_for_string_type == UTF_16BE) {
+		outcome_offset = outcome - _REENCODER_UTF16_PARSE_OFFSET;
+		if (outcome_offset >= (sizeof(_REENCODER_UTF16_OUTCOME_ARR) / sizeof(_REENCODER_UTF16_OUTCOME_ARR[0]))) {
+			return NULL;
+		}
+		return _REENCODER_UTF16_OUTCOME_ARR[outcome_offset];
+	}
+	else if (error_for_string_type == UTF_32LE || error_for_string_type == UTF_32BE) {
+		outcome_offset = outcome - _REENCODER_UTF32_PARSE_OFFSET;
+		if (outcome_offset >= (sizeof(_REENCODER_UTF32_OUTCOME_ARR) / sizeof(_REENCODER_UTF32_OUTCOME_ARR[0]))) {
+			return NULL;
+		}
+		return _REENCODER_UTF32_OUTCOME_ARR[outcome_offset];
+	}
+
+	return NULL;
 }

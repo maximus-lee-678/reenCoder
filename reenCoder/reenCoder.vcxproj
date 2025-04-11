@@ -130,12 +130,14 @@
     <ClCompile Include="main.c" />
     <ClCompile Include="source\reencoder_cp_locale.c" />
     <ClCompile Include="source\reencoder_utf_16.c" />
+    <ClCompile Include="source\reencoder_utf_32.c" />
     <ClCompile Include="source\reencoder_utf_8.c" />
     <ClCompile Include="source\reencoder_utf_common.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\reencoder_cp_locale.h" />
     <ClInclude Include="headers\reencoder_utf_16.h" />
+    <ClInclude Include="headers\reencoder_utf_32.h" />
     <ClInclude Include="headers\reencoder_utf_8.h" />
     <ClInclude Include="headers\reencoder_utf_common.h" />
   </ItemGroup>
