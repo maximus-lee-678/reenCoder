@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Test Files">
+      <UniqueIdentifier>{40f5a943-bf31-48e4-90e4-f902c1dd30c9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\reencoder_cp_locale.c">
@@ -33,6 +36,12 @@
     <ClCompile Include="source\reencoder_utf_32.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="tests_cmocka\reencoder_test_main.c">
+      <Filter>Test Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tests_cmocka\reencoder_test_utf_8.c">
+      <Filter>Test Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\reencoder_cp_locale.h">
@@ -49,6 +58,9 @@
     </ClInclude>
     <ClInclude Include="headers\reencoder_utf_32.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tests_cmocka\reencoder_test_utf_8.h">
+      <Filter>Test Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

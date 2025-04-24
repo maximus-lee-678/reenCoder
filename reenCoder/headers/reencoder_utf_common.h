@@ -92,6 +92,8 @@ static const char* _REENCODER_UTF32_OUTCOME_ARR[] = {
 	"[UTF-32: Invalid] String byte length not a multiple of 4"
 };
 
+#define _REENCODER_UNICODE_REPLACEMENT_CHARACTER 0xFFFD
+
 /**
  * @brief Initialises a `ReencoderUnicodeStruct` with the provided string type.
  *
@@ -132,7 +134,6 @@ ReencoderUnicodeStruct* _reencoder_unicode_struct_express_populate(
 	unsigned int string_validity, size_t num_chars
 );
 
-
 /**
  * @brief Frees a `ReencoderUnicodeStruct` and its string buffer.
  *
@@ -141,7 +142,6 @@ ReencoderUnicodeStruct* _reencoder_unicode_struct_express_populate(
  * @return void
  */
 void reencoder_unicode_struct_free(ReencoderUnicodeStruct* unicode_struct);
-
 
 /**
  * @brief Returns a human-readable string for a given ReencoderEncodeType.
@@ -152,16 +152,6 @@ void reencoder_unicode_struct_free(ReencoderUnicodeStruct* unicode_struct);
  * @retval NULL If provided type is out of bounds.
  */
 const char* reencoder_encode_type_as_str(unsigned int encode_type);
-
-
-/**
- * @brief Determines if the system is little-endian.
- *
- * Intended for internal use by reencoder_utf_* functions.
- *
- * @return 1 if the system is little-endian, 0 if the system is big-endian.
- */
-uint8_t _reencoder_is_system_little_endian();
 
 /**
  * @brief Returns a human-readable string for a given parse outcome code.
@@ -176,31 +166,81 @@ uint8_t _reencoder_is_system_little_endian();
 const char* reencoder_outcome_as_str(unsigned int outcome, enum ReencoderEncodeType error_for_string_type);
 
 /**
- * @brief Writes a UTF-16 uint16_t string to a buffer with swapped endianness.
+ * @brief Parses a given UTF sequence and converts it to a UTF sequence of different encoding before loading it into a `ReencoderUnicodeStruct`.
  *
- * Officially declared in reencoder_utf_16.c.
- * Since UTF-16 strings are represented in memory as 16-bit code units, the endianness of the system must be considered.
- * To preserve intended byte order, this function writes to a 1-byte wide buffer (uint8_t).
+ * Input string (source_uint_buffer) must be represented as: uint8_t* (UTF-8), uint16_t* (UTF-16), or uint32_t* (UTF-32) and cast to void*.
+ * The returned `ReencoderUnicodeStruct` will be fully initialised if the string is valid.
+ * If the provided UTF string is invalid, a ReencoderUnicodeStruct handling that string directly will be returned.
+ * ReencoderUnicodeStruct->num_chars will be 0 if any string is invalid (both provided and converted strings).
  *
- * @param[in] src UTF-16 string to be written.
- * @param[out] dest Buffer to be written to.
- * @param[in] length Length of the provided string. Length is not number of bytes, but number of uint16_t elements.
+ * The returned `ReencoderUnicodeStruct` must be freed using `reencoder_unicode_struct_free()` once it is no longer needed.
  *
- * @return void
+ * @param[in] source_encoding Specifies source encoding type (UTF-8, UTF_16BE, UTF_16LE, UTF_32BE, or UTF_32LE).
+ * @param[in] target_encoding Specifies target encoding type (UTF-8, UTF_16BE, UTF_16LE, UTF_32BE, or UTF_32LE).
+ * @param[in] source_uint_buffer Input UTF string. Must be null-terminated: 0x00 (UTF-8), 0x0000 (UTF-16), and 0x00000000 (UTF-32).
+ *
+ * @return Pointer to a `ReencoderUnicodeStruct` containing data for a string encoded in provided target encoding type.
+ * @retval Pointer to a `ReencoderUnicodeStruct` containing data for a string encoded in provided source encoding type if the provided string is invalid.
+ * @retval NULL If memory allocation fails or an invalid `target_endian` is provided.
  */
-extern void _reencoder_utf16_write_buffer_swap_endian(uint8_t* dest, const uint16_t* src, size_t length);
+ReencoderUnicodeStruct* reencoder_convert(enum ReencoderEncodeType source_encoding, enum ReencoderEncodeType target_encoding, const void* source_uint_buffer);
 
 /**
- * @brief Writes a UTF-32 uint32_t string to a buffer with swapped endianness.
+ * @brief Determines if the system is little-endian.
  *
- * Officially declared in reencoder_utf_32.c.
- * Since UTF-32 strings are represented in memory as 32-bit code units, the endianness of the system must be considered.
- * To preserve intended byte order, this function writes to a 1-byte wide buffer (uint8_t).
+ * Intended for internal use by reencoder_utf_* functions.
  *
- * @param[in] src UTF-32 string to be written.
- * @param[out] dest Buffer to be written to.
- * @param[in] length Length of the provided string. Length is not number of bytes, but number of uint32_t elements.
- *
- * @return void
+ * @return 1 if the system is little-endian, 0 if the system is big-endian.
  */
+uint8_t _reencoder_is_system_little_endian();
+
+/**
+ * @brief Initialises or grows a buffer for UTF-8/16/32 encoding.
+ *
+ * If the buffer is NULL, it will be allocated with the base size (_REENCODER_BASE_STRING_BYTE_SIZE).
+ * The buffer either grows by a defined factor (_REENCODER_BASE_STRING_GROW_RATE) when allocate_only_one_unit is 0,
+ * and by element_size bytes when allocate_only_one_unit is 1.
+ *
+ * @param[in] buffer Buffer to expand. Can be NULL.
+ * @param[in/out] current_buffer_size Current size of the buffer. Is updated to the new size during function call.
+ * @param[in] allocate_only_one_unit Whether or not to allocate only one unit of memory, particularly just for the null-terminator.
+ * @param[in] element_size Size of one unit in caller's context. Use sizeof(uint8_t), sizeof(uint16_t), or sizeof(uint32_t) as appropriate.
+ *
+ * @return Pointer to the new buffer. Recommended to cast to appropriate type (uint8_t*, uint16_t*, or uint32_t*).
+ * @retval NULL If memory allocation fails.
+ */
+void* _reencoder_grow_buffer(void* buffer, size_t* current_buffer_size, unsigned int allocate_only_one_unit, size_t element_size);
+
+
+/**
+ * @brief Checks if a given Unicode code point is valid.
+ * 
+ * Performs range and surrogate pair checks.
+ *
+ * @param[in] code_point Unicode code point.
+ *
+ * @return 1 if the code point is valid, 0 if it is not.
+ */
+unsigned int _reencoder_code_point_is_valid(const uint32_t code_point);
+
+// Below are declared extern functions present in reencoder_utf_8.h, reencoder_utf_16.h, and reencoder_utf_32.h.
+// Separated by file for clarity.
+
+extern ReencoderUnicodeStruct* reencoder_utf8_parse(const uint8_t* string);
+extern unsigned int _reencoder_utf8_seq_is_valid(const uint8_t* string);
+extern uint32_t _reencoder_utf8_decode_to_code_point(const uint8_t* ptr, unsigned int* units_read);
+extern unsigned int _reencoder_utf8_encode_from_code_point(uint8_t* buffer, size_t index, uint32_t code_point);
+
+extern ReencoderUnicodeStruct* reencoder_utf16_parse_uint16(const uint16_t* string, enum ReencoderEncodeType target_endian);
+extern size_t _reencoder_utf16_strlen(const uint16_t* string);
+unsigned int _reencoder_utf16_seq_is_valid(const uint16_t* string, size_t length);
+extern uint32_t _reencoder_utf16_decode_to_code_point(const uint16_t* ptr, unsigned int* char_units);
+extern unsigned int _reencoder_utf16_encode_from_code_point(uint16_t* buffer, size_t index, uint32_t code_point);
+extern void _reencoder_utf16_write_buffer_swap_endian(uint8_t* dest, const uint16_t* src, size_t length);
+
+extern ReencoderUnicodeStruct* reencoder_utf32_parse_uint32(const uint32_t* string, enum ReencoderEncodeType target_endian);
+extern size_t _reencoder_utf32_strlen(const uint32_t* string);
+extern unsigned int _reencoder_utf32_seq_is_valid(const uint32_t* string, size_t length);
+extern uint32_t _reencoder_utf32_decode_to_code_point(const uint32_t* ptr, unsigned int* units_read);
+extern unsigned int _reencoder_utf32_encode_from_code_point(uint32_t* buffer, size_t index, uint32_t code_point);
 extern void _reencoder_utf32_write_buffer_swap_endian(uint8_t* dest, const uint32_t* src, size_t length);

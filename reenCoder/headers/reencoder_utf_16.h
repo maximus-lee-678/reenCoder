@@ -1,10 +1,12 @@
 #pragma once
 
+#include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
 #include "reencoder_utf_common.h"
 #include "reencoder_utf_8.h"
+#include "reencoder_utf_32.h"
 
 /**
  * @brief Parses a given UTF-16 uint16_t* sequence and loads it into a `ReencoderUnicodeStruct`.
@@ -40,9 +42,7 @@ ReencoderUnicodeStruct* reencoder_utf16_parse_uint16(const uint16_t* string, enu
  * @return Pointer to a `ReencoderUnicodeStruct` containing parsed string data.
  * @retval NULL If memory allocation fails or an invalid `target_endian` is provided.
  */
-ReencoderUnicodeStruct* reencoder_utf16_parse_uint8(
-	const uint8_t* string, size_t bytes, enum ReencoderEncodeType source_endian, enum ReencoderEncodeType target_endian
-);
+ReencoderUnicodeStruct* reencoder_utf16_parse_uint8(const uint8_t* string, size_t bytes, enum ReencoderEncodeType source_endian, enum ReencoderEncodeType target_endian);
 
 /**
  * @brief Parses a given UTF-8 uint8_t* sequence and converts it to UTF-16 before loading it into a `ReencoderUnicodeStruct`.
@@ -52,15 +52,46 @@ ReencoderUnicodeStruct* reencoder_utf16_parse_uint8(
  * If the provided UTF-8 string is invalid, a ReencoderUnicodeStruct handling the UTF-8 string directly will be returned.
  * ReencoderUnicodeStruct->num_chars will be 0 if the string is invalid (both UTF-8 and UTF-16).
  *
- * The returned `ReencoderUnicodeStruct` must be freed using `reencoder_unicode_struct_free()` once it is no longer needed
+ * The returned `ReencoderUnicodeStruct` must be freed using `reencoder_unicode_struct_free()` once it is no longer needed.
  *
  * @param[in] string Input UTF-8 string. Must be null-terminated (0x00).
+ * @param[in] target_endian Specifies target UTF-16 endianness (UTF_16BE or UTF_16LE).
  *
  * @return Pointer to a `ReencoderUnicodeStruct` containing parsed string data for a UTF-16 string.
  * @retval Pointer to a `ReencoderUnicodeStruct` containing parsed string data for a UTF-8 string if the provided UTF-8 string is invalid.
  * @retval NULL If memory allocation fails or an invalid `target_endian` is provided.
  */
 ReencoderUnicodeStruct* reencoder_utf16_parse_from_utf8(const uint8_t* string, enum ReencoderEncodeType target_endian);
+
+/**
+ * @brief Parses a given UTF-32 uint32_t* sequence and converts it to UTF-16 before loading it into a `ReencoderUnicodeStruct`.
+ *
+ * Input string must be represented as uint32_t*.
+ * The returned `ReencoderUnicodeStruct` will be fully initialised if the string is valid.
+ * If the provided UTF-32 string is invalid, a ReencoderUnicodeStruct handling the UTF-32 string directly will be returned.
+ * ReencoderUnicodeStruct->num_chars will be 0 if the string is invalid (both UTF-32 and UTF-16).
+ *
+ * The returned `ReencoderUnicodeStruct` must be freed using `reencoder_unicode_struct_free()` once it is no longer needed.
+ *
+ * @param[in] string Input UTF-32 string. Must be null-terminated (0x00000000).
+ * @param[in] target_endian Specifies target UTF-16 endianness (UTF_16BE or UTF_16LE).
+ *
+ * @return Pointer to a `ReencoderUnicodeStruct` containing parsed string data for a UTF-16 string.
+ * @retval Pointer to a `ReencoderUnicodeStruct` containing parsed string data for a UTF-32 string if the provided UTF-32 string is invalid.
+ * @retval NULL If memory allocation fails or an invalid `target_endian` is provided.
+ */
+ReencoderUnicodeStruct* reencoder_utf16_parse_from_utf32(const uint32_t* string, enum ReencoderEncodeType target_endian);
+
+/**
+ * @brief Returns the length of a UTF-16 string.
+ *
+ * Length in this case is not number of bytes, but number of uint16_t elements.
+ *
+ * @param[in] string UTF-16 string to be checked. Represented as an array of uint16_t. Must be null-terminated (0x0000).
+ *
+ * @return Length of the provided string.
+ */
+extern size_t _reencoder_utf16_strlen(const uint16_t* string);
 
 /**
  * @brief Checks if a provided UTF-16 string is valid.
@@ -72,29 +103,57 @@ ReencoderUnicodeStruct* reencoder_utf16_parse_from_utf8(const uint8_t* string, e
  *
  * @return Unsigned integer representing the outcome of the check. Corresponds to index in `REENCODER_UTF16_OUTCOME_ARR`.
  */
-unsigned int _reencoder_utf16_is_valid(const uint16_t* string, size_t length);
-
-/**
- * @brief Returns the length of a UTF-16 string.
- *
- * Length in this case is not number of bytes, but number of uint16_t elements.
- *
- * @param[in] string UTF-16 string to be checked. Represented as an array of uint16_t. Must be null-terminated (0x0000).
- *
- * @return Length of the provided string.
- */
-size_t _reencoder_utf16_strlen(const uint16_t* string);
+unsigned int _reencoder_utf16_seq_is_valid(const uint16_t* string, size_t length);
 
 /**
  * @brief Converts a UTF-16 string represented in uint8_t to standardised uint16_t.
- * 
+ *
  * If an odd number of bytes is provided, the function will promote the last byte to a full code unit.
  * The byte will be treated as the "low" byte, i.e. the last byte in the uint16_t buffer will be 0x00XX.
  * Be mindful that this may (probably will) produce an invalid UTF-16 string, so be sure to check the validity of the string afterwards.
  *
- * @param[out] dest Output UTF-16 string uint16_t buffer.
+ * @param[out] dest Output UTF-16 string buffer.
  * @param[in] src Input UTF-16 string. Need not be null-terminated since 0x00 is valid in UTF-16 when represented in 1 byte sequences.
  * @param[in] bytes Byte count of input UTF-16 string.
  * @param[in] source_endian Specifies source UTF-16 endianness (UTF_16BE or UTF_16LE).
  */
 void _reencoder_utf16_uint16_from_uint8(uint16_t* dest, const uint8_t* src, size_t bytes, enum ReencoderEncodeType source_endian);
+
+/**
+ * @brief Given a pointer to a UTF-16 buffer, extracts one character to a code point. Also retrieves original character size.
+ *
+ * @param[in] ptr Pointer to UTF-16 buffer where the character starts.
+ * @param[out] char_units Pointer to an unsigned integer where the original character unit count (no. of 2 byte units) will be stored.
+ *
+ * @return Single Unicode code point.
+ * @retval U+FFFD (REPLACEMENT CHARACTER) if the character is invalid.
+ */
+uint32_t _reencoder_utf16_decode_to_code_point(const uint16_t* ptr, unsigned int* char_units);
+
+/**
+ * @brief Encodes a Unicode codepoint to UTF-16 and writes it to a buffer.
+ *
+ * Writes a REPLACEMENT CHARACTER (0xFFFD) if the code point is invalid.
+ *
+ * @param[out] buffer Pointer to the buffer where the encoded UTF-16 character will be written.
+ * @param[in] index Index in the buffer where the character will be written.
+ * @param[in] code_point Unicode code point to be encoded.
+ *
+ * @return Unsigned integer representing the unit count (no. of 2 byte units) written to the buffer.
+ */
+unsigned int _reencoder_utf16_encode_from_code_point(uint16_t* buffer, size_t index, uint32_t code_point);
+
+/**
+ * @brief Writes a UTF-16 uint16_t string to a buffer with swapped endianness.
+ *
+ * Officially declared in reencoder_utf_16.c.
+ * Since UTF-16 strings are represented in memory as 16-bit code units, the endianness of the system must be considered.
+ * To preserve intended byte order, this function writes to a 1-byte wide buffer (uint8_t).
+ *
+ * @param[in] src UTF-16 string to be written.
+ * @param[out] dest Buffer to be written to.
+ * @param[in] length Length of the provided string. Length is not number of bytes, but number of uint16_t elements.
+ *
+ * @return void
+ */
+extern void _reencoder_utf16_write_buffer_swap_endian(uint8_t* dest, const uint16_t* src, size_t length);

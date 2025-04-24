@@ -114,7 +114,8 @@ ReencoderUnicodeStruct* _reencoder_unicode_struct_express_populate(
 
 	// only populate num_chars if the string is valid
 	if ((string_type == UTF_8 && string_validity == REENCODER_UTF8_VALID) ||
-		((string_type == UTF_16BE || string_type == UTF_16LE) && string_validity == REENCODER_UTF16_VALID)) {
+		((string_type == UTF_16BE || string_type == UTF_16LE) && string_validity == REENCODER_UTF16_VALID) ||
+		((string_type == UTF_32BE || string_type == UTF_32LE) && string_validity == REENCODER_UTF32_VALID)) {
 		unicode_struct->num_chars = num_chars;
 	}
 	unicode_struct->num_bytes = string_buffer_bytes;
@@ -139,15 +140,6 @@ const char* reencoder_encode_type_as_str(unsigned int encode_type) {
 	}
 
 	return _REENCODER_ENCODE_TYPE_ARR[encode_type];
-}
-
-uint8_t _reencoder_is_system_little_endian() {
-	// BE: 0x0102 -> 0x01 0x02
-	// LE: 0x0102 -> 0x02 0x01
-	uint16_t determinator = 0x0102;
-
-	// if first byte is 0x02, it's little-endian
-	return (*(uint8_t*)&determinator == 0x02);
 }
 
 const char* reencoder_outcome_as_str(unsigned int outcome, enum ReencoderEncodeType error_for_string_type) {
@@ -179,4 +171,193 @@ const char* reencoder_outcome_as_str(unsigned int outcome, enum ReencoderEncodeT
 	}
 
 	return NULL;
+}
+
+ReencoderUnicodeStruct* reencoder_convert(enum ReencoderEncodeType source_encoding, enum ReencoderEncodeType target_encoding, const void* source_uint_buffer) {
+	if ((source_encoding != UTF_8 && source_encoding != UTF_16BE && source_encoding != UTF_16LE && source_encoding != UTF_32BE && source_encoding != UTF_32LE) ||
+		(target_encoding != UTF_8 && target_encoding != UTF_16BE && target_encoding != UTF_16LE && target_encoding != UTF_32BE && target_encoding != UTF_32LE)) {
+		return NULL;
+	}
+
+	// gather information about the source string, then
+	// check if source_uint_buffer string is valid for specified source_encoding.
+	// if not, return a struct with source_encoding
+	size_t string_length = 0;
+	size_t string_size_bytes = 0;
+	unsigned int input_buffer_validity = 0;
+	if (source_encoding == UTF_8) {
+		string_length = strlen((uint8_t*)source_uint_buffer);
+		string_size_bytes = string_length * sizeof(uint8_t);
+		input_buffer_validity = _reencoder_utf8_seq_is_valid((const uint8_t*)source_uint_buffer);
+		if (input_buffer_validity != REENCODER_UTF8_VALID) {
+			return _reencoder_unicode_struct_express_populate(
+				source_encoding, (const void*)source_uint_buffer, string_size_bytes, input_buffer_validity, 0
+			);
+		}
+	}
+	else if (source_encoding == UTF_16BE || source_encoding == UTF_16LE) {
+		string_length = _reencoder_utf16_strlen((uint16_t*)source_uint_buffer);
+		string_size_bytes = string_length * sizeof(uint16_t);
+		input_buffer_validity = _reencoder_utf16_seq_is_valid((const uint16_t*)source_uint_buffer, string_length);
+		if (input_buffer_validity != REENCODER_UTF16_VALID) {
+			return _reencoder_unicode_struct_express_populate(
+				source_encoding, (const void*)source_uint_buffer, string_size_bytes, input_buffer_validity, 0
+			);
+		}
+	}
+	else if (source_encoding == UTF_32BE || source_encoding == UTF_32LE) {
+		string_length = _reencoder_utf32_strlen((uint32_t*)source_uint_buffer);
+		string_size_bytes = string_length * sizeof(uint32_t);
+		input_buffer_validity = _reencoder_utf32_seq_is_valid((const uint32_t*)source_uint_buffer, string_length);
+		if (input_buffer_validity != REENCODER_UTF32_VALID) {
+			return _reencoder_unicode_struct_express_populate(
+				source_encoding, (const void*)source_uint_buffer, string_size_bytes, input_buffer_validity, 0
+			);
+		}
+	}
+
+	// begin conversion
+	// assumes input is well-formed, since we already checked earlier
+	size_t output_buffer_index = 0;
+	size_t output_buffer_size = 0;
+	void* output_buffer = NULL;
+	const void* ptr_read = source_uint_buffer;
+	size_t units_processed = 0;
+
+	while (units_processed < string_length) {
+		// grow buffer if uninitialised or out of space
+		// maximum byte size a converted character can be is: 4 unit UTF-8, 2 unit UTF-16, 1 unit UTF-32
+		if (target_encoding == UTF_8) {
+			if ((output_buffer_index + 4) * sizeof(uint8_t) > output_buffer_size) {
+				output_buffer = _reencoder_grow_buffer((uint8_t*)output_buffer, &output_buffer_size, 0, sizeof(uint8_t));
+			}
+		}
+		else if (target_encoding == UTF_16BE || target_encoding == UTF_16LE) {
+			if ((output_buffer_index + 2) * sizeof(uint16_t) > output_buffer_size) {
+				output_buffer = _reencoder_grow_buffer((uint16_t*)output_buffer, &output_buffer_size, 0, sizeof(uint16_t));
+			}
+		}
+		else if (target_encoding == UTF_32BE || target_encoding == UTF_32LE) {
+			if ((output_buffer_index + 1) * sizeof(uint32_t) > output_buffer_size) {
+				output_buffer = _reencoder_grow_buffer((uint32_t*)output_buffer, &output_buffer_size, 0, sizeof(uint32_t));
+			}
+		}
+		if (output_buffer == NULL) {
+			return NULL;
+		}
+
+		// decode 1x char
+		unsigned int units_read = 0;
+		uint32_t code_point = 0x00000000;
+		if (source_encoding == UTF_8) {
+			code_point = _reencoder_utf8_decode_to_code_point((const uint8_t*)ptr_read, &units_read);
+			ptr_read = (const uint8_t*)ptr_read + units_read;
+		}
+		else if (source_encoding == UTF_16BE || source_encoding == UTF_16LE) {
+			code_point = _reencoder_utf16_decode_to_code_point((const uint16_t*)ptr_read, &units_read);
+			ptr_read = (const uint16_t*)ptr_read + units_read;
+		}
+		else if (source_encoding == UTF_32BE || source_encoding == UTF_32LE) {
+			code_point = _reencoder_utf32_decode_to_code_point((const uint32_t*)ptr_read, &units_read);
+			ptr_read = (const uint32_t*)ptr_read + units_read;
+		}
+
+		// encode 1x char
+		unsigned int units_written = 0;
+		if (target_encoding == UTF_8) {
+			units_written = _reencoder_utf8_encode_from_code_point((uint8_t*)output_buffer, output_buffer_index, code_point);
+		}
+		else if (target_encoding == UTF_16BE || target_encoding == UTF_16LE) {
+			units_written = _reencoder_utf16_encode_from_code_point((uint16_t*)output_buffer, output_buffer_index, code_point);
+		}
+		else if (target_encoding == UTF_32BE || target_encoding == UTF_32LE) {
+			units_written = _reencoder_utf32_encode_from_code_point((uint32_t*)output_buffer, output_buffer_index, code_point);
+		}
+		output_buffer_index += units_written;
+
+		units_processed += units_read;
+	}
+
+	// grow buffer if out of space (for null-terminator) and null-terminate output
+	if (target_encoding == UTF_8) {
+		if ((output_buffer_index + 1) * sizeof(uint8_t) > output_buffer_size) {
+			output_buffer = _reencoder_grow_buffer((uint8_t*)output_buffer, &output_buffer_size, 1, sizeof(uint8_t));
+		}
+		((uint8_t*)output_buffer)[output_buffer_index] = 0x00;
+	}
+	else if (target_encoding == UTF_16BE || target_encoding == UTF_16LE) {
+		if ((output_buffer_index + 1) * sizeof(uint16_t) > output_buffer_size) {
+			output_buffer = _reencoder_grow_buffer((uint16_t*)output_buffer, &output_buffer_size, 1, sizeof(uint16_t));
+		}
+		((uint16_t*)output_buffer)[output_buffer_index] = 0x0000;
+	}
+	else if (target_encoding == UTF_32BE || target_encoding == UTF_32LE) {
+		if ((output_buffer_index + 1) * sizeof(uint32_t) > output_buffer_size) {
+			output_buffer = _reencoder_grow_buffer((uint32_t*)output_buffer, &output_buffer_size, 1, sizeof(uint32_t));
+		}
+		((uint32_t*)output_buffer)[output_buffer_index] = 0x00000000;
+	}
+
+	// create struct
+	ReencoderUnicodeStruct* output_struct = NULL;
+	if (target_encoding == UTF_8) {
+		output_struct = reencoder_utf8_parse((uint8_t*)output_buffer);
+	}
+	else if (target_encoding == UTF_16BE || target_encoding == UTF_16LE) {
+		output_struct = reencoder_utf16_parse_uint16((uint16_t*)output_buffer, target_encoding);
+	}
+	else if (target_encoding == UTF_32BE || target_encoding == UTF_32LE) {
+		output_struct = reencoder_utf32_parse_uint32((uint32_t*)output_buffer, target_encoding);
+	}
+
+	// clean up other allocated memory
+	free(output_buffer);
+
+	return output_struct;
+}
+
+uint8_t _reencoder_is_system_little_endian() {
+	// BE: 0x0102 -> 0x01 0x02
+	// LE: 0x0102 -> 0x02 0x01
+	uint16_t determinator = 0x0102;
+
+	// if first byte is 0x02, it's little-endian
+	return (*(uint8_t*)&determinator == 0x02);
+}
+
+void* _reencoder_grow_buffer(void* buffer, size_t* current_buffer_size, unsigned int allocate_only_one_unit, size_t element_size) {
+	size_t new_size = 0;
+
+	if (*current_buffer_size == 0 && !allocate_only_one_unit) {
+		new_size = _REENCODER_BASE_STRING_BYTE_SIZE;
+	}
+	else if (allocate_only_one_unit) {
+		new_size = *current_buffer_size + element_size;
+	}
+	else {
+		new_size = *current_buffer_size * _REENCODER_BASE_STRING_GROW_RATE;
+	}
+
+	void* new_buffer = realloc(buffer, new_size);
+	if (new_buffer == NULL) {
+		*current_buffer_size = 0;
+		free(buffer);
+		return NULL;
+	}
+
+	*current_buffer_size = new_size;
+	return new_buffer;
+}
+
+unsigned int _reencoder_code_point_is_valid(const uint32_t code_point) {
+	// (INVALID) unicode out of range
+	if (code_point > 0x10FFFF) {
+		return 0;
+	}
+	// (INVALID) surrogate value
+	if (code_point >= 0xD800 && code_point <= 0xDFFF) {
+		return 0;
+	}
+
+	return 1;
 }
