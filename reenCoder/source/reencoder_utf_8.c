@@ -207,7 +207,7 @@ unsigned int _reencoder_utf8_determine_length_from_first_byte(uint8_t first_byte
 
 	if ((first_byte & 0b10000000) == 0b00000000) // 0xxxxxxx ~ 1-byte ASCII
 		return 1;
-	else if ((first_byte & 0x11100000) == 0b11000000) // 110xxxxx ~ 2-byte sequence
+	else if ((first_byte & 0b11100000) == 0b11000000) // 110xxxxx ~ 2-byte sequence
 		return 2;
 	else if ((first_byte & 0b11110000) == 0b11100000) // 1110xxxx ~ 3-byte sequence
 		return 3;
