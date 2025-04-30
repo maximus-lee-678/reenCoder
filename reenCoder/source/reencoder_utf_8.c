@@ -406,11 +406,11 @@ static inline unsigned int _reencoder_utf8_validity_check_3_is_not_overlong(uint
 
 static inline unsigned int _reencoder_utf8_validity_check_4_is_in_unicode_range(uint8_t code_units[4], unsigned int num_units) {
 	// REENCODER_UTF_8 STATIC FUNCTION DEFINITION
-	
+
 	// valid unicode range: U+0000 to U+10FFFF
 	// U+10FFFF equates to 0001 0000 1111 1111 1111 1111
 	// represented in unicode as 0b11110100 0b10001111 0b10111111 0b10111111 (4-byte character)
-	if (num_units == 4 && code_units[0] > 0b11110100) {
+	if (num_units == 4 && (code_units[0] > 0b11110100 || (code_units[0] == 0b11110100 && code_units[1] > 0b10001111))) {
 		return 0;
 	}
 
@@ -419,7 +419,7 @@ static inline unsigned int _reencoder_utf8_validity_check_4_is_in_unicode_range(
 
 static inline unsigned int _reencoder_utf8_validity_check_5_is_not_surrogate(uint8_t code_units[4], unsigned int num_units) {
 	// REENCODER_UTF_8 STATIC FUNCTION DEFINITION
-	
+
 	// surrogate pairs check: U+D800 to U+DFFF
 	// equates to 0b11101101 0b10100000 0b10000000 to 
 	// ---------- 0b11101101 0b10111111 0b10111111
