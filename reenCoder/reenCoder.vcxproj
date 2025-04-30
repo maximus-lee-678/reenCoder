@@ -143,6 +143,7 @@
     <ClInclude Include="headers\reencoder_utf_8.h" />
     <ClInclude Include="headers\reencoder_utf_common.h" />
     <ClInclude Include="tests_cmocka\reencoder_test_utf_8.h" />
+    <ClInclude Include="tests_cmocka\reencoder_test_utf_strings.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

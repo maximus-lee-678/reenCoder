@@ -12,6 +12,8 @@
 !reenCoder/headers/
 !reenCoder/headers/**/*.c
 !reenCoder/headers/**/*.h
+!reenCoder/tests_cmocka/**/*.c
+!reenCoder/tests_cmocka/**/*.h
 
 # User-specific files
 *.rsuser
