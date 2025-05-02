@@ -66,14 +66,12 @@ static const char* _REENCODER_UTF8_OUTCOME_ARR[] = {
 
 #define _REENCODER_UTF16_PARSE_OFFSET 1600
 #define REENCODER_UTF16_VALID 1600
-#define REENCODER_UTF16_PREMATURE_END 1601
-#define REENCODER_UTF16_UNPAIRED_HIGH 1602
-#define REENCODER_UTF16_UNPAIRED_LOW 1603
-#define REENCODER_UTF16_OVERLONG_ENCODING 1604
-#define REENCODER_UTF16_ODD_LENGTH 1605
+#define REENCODER_UTF16_UNPAIRED_HIGH 1601
+#define REENCODER_UTF16_UNPAIRED_LOW 1602
+#define REENCODER_UTF16_OVERLONG_ENCODING 1603
+#define REENCODER_UTF16_ODD_LENGTH 1604
 static const char* _REENCODER_UTF16_OUTCOME_ARR[] = {
 	"[UTF-16: Valid] Well-formed UTF-16 string",
-	"[UTF-16: Invalid] String ended before the sequence completed",
 	"[UTF-16: Invalid] Unpaired high surrogate",
 	"[UTF-16: Invalid] Unpaired low surrogate",
 	"[UTF-16: Invalid] Overlong encoding for 4 byte sequence",

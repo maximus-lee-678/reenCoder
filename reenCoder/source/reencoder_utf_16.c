@@ -372,11 +372,13 @@ static inline unsigned int _reencoder_utf16_validity_check_3_is_low_surrogate(ui
 static inline unsigned int _reencoder_utf16_validity_check_4_is_not_overlong(uint32_t code_unit_1, uint32_t code_unit_2) {
 	// REENCODER_UTF_16 STATIC FUNCTION DEFINITION
 	
-	// overlong encoding check
+	// overlong encoding check, although overlong isn't specified as an error in UTF-16, we still want to
+	// reject useless surrogate pairs that encode a character than could fit in 2 bytes as a 4 byte sequence
 	// https://en.wikipedia.org/wiki/UTF-16#Code_points_from_U+010000_to_U+10FFFF
 	// U' = yyyyyyyyyyxxxxxxxxxx  -> U - 0x10000
 	// W1 = 110110yyyyyyyyyy      -> 0xD800 + yyyyyyyyyy
 	// W2 = 110111xxxxxxxxxx      -> 0xDC00 + xxxxxxxxxx
 	// ensure that U' could not have been encoded in a single 16-bit code unit
-	return (((code_unit_1 - 0xD800) << 10) | (code_unit_2 - 0xDC00)) > 0b1111111111;
+	// does not check for surrogate pairs, that should be handled upstream
+	return (((code_unit_1 - 0xD800) << 10) | (code_unit_2 - 0xDC00)) > 0xFFFF;
 }
