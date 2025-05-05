@@ -134,6 +134,8 @@
     <ClCompile Include="source\reencoder_utf_8.c" />
     <ClCompile Include="source\reencoder_utf_common.c" />
     <ClCompile Include="tests_cmocka\reencoder_test_main.c" />
+    <ClCompile Include="tests_cmocka\reencoder_test_utf_16.c" />
+    <ClCompile Include="tests_cmocka\reencoder_test_utf_32.c" />
     <ClCompile Include="tests_cmocka\reencoder_test_utf_8.c" />
   </ItemGroup>
   <ItemGroup>
@@ -142,6 +144,8 @@
     <ClInclude Include="headers\reencoder_utf_32.h" />
     <ClInclude Include="headers\reencoder_utf_8.h" />
     <ClInclude Include="headers\reencoder_utf_common.h" />
+    <ClInclude Include="tests_cmocka\reencoder_test_utf_16.h" />
+    <ClInclude Include="tests_cmocka\reencoder_test_utf_32.h" />
     <ClInclude Include="tests_cmocka\reencoder_test_utf_8.h" />
     <ClInclude Include="tests_cmocka\reencoder_test_utf_strings.h" />
   </ItemGroup>

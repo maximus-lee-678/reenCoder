@@ -352,14 +352,12 @@ static size_t reencoder_utf16_determine_num_chars(const uint16_t* string) {
 		unsigned int is_surrogate_half = !_reencoder_utf16_validity_check_1_is_not_surrogate(string[examined_index]);
 
 		if (is_surrogate_half) {
-			num_utf16_chars++;
 			examined_index += 2;
 		}
 		else {
-			num_utf16_chars++;
 			examined_index += 1;
-
 		}
+		num_utf16_chars++;
 	}
 
 	return num_utf16_chars;

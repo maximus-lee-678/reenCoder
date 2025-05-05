@@ -1,24 +1,5 @@
 ﻿#include "reencoder_test_utf_8.h"
 
-int _reencoder_test_teardown_buffer(void** state) {
-    ReencoderUnicodeStruct* s = *state;
-    if (s) {
-        free(s->string_buffer);
-        free(s);
-    }
-
-    return 0;
-}
-
-void _reencoder_test_struct_equal(ReencoderUnicodeStruct* expected, ReencoderUnicodeStruct* actual) {
-    assert_non_null(actual);
-    assert_int_equal(expected->string_type, actual->string_type);
-    assert_int_equal(expected->string_validity, actual->string_validity);
-    assert_int_equal(expected->num_bytes, actual->num_bytes);
-    assert_int_equal(expected->num_chars, actual->num_chars);
-    assert_memory_equal(expected->string_buffer, actual->string_buffer, expected->num_bytes);
-}
-
 void _reencoder_test_valid_utf_8_1_byte_sequence(void** state) {
     (void)state;
 

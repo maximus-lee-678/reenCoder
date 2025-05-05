@@ -42,6 +42,12 @@
     <ClCompile Include="tests_cmocka\reencoder_test_utf_8.c">
       <Filter>Test Files</Filter>
     </ClCompile>
+    <ClCompile Include="tests_cmocka\reencoder_test_utf_16.c">
+      <Filter>Test Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tests_cmocka\reencoder_test_utf_32.c">
+      <Filter>Test Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\reencoder_cp_locale.h">
@@ -63,6 +69,12 @@
       <Filter>Test Files</Filter>
     </ClInclude>
     <ClInclude Include="tests_cmocka\reencoder_test_utf_strings.h">
+      <Filter>Test Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tests_cmocka\reencoder_test_utf_16.h">
+      <Filter>Test Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tests_cmocka\reencoder_test_utf_32.h">
       <Filter>Test Files</Filter>
     </ClInclude>
   </ItemGroup>
