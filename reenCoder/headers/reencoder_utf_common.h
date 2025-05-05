@@ -66,23 +66,21 @@ static const char* _REENCODER_UTF8_OUTCOME_ARR[] = {
 
 #define _REENCODER_UTF16_PARSE_OFFSET 1600
 #define REENCODER_UTF16_VALID 1600
-#define REENCODER_UTF16_UNPAIRED_HIGH 1601
-#define REENCODER_UTF16_UNPAIRED_LOW 1602
-#define REENCODER_UTF16_OVERLONG_ENCODING 1603
-#define REENCODER_UTF16_ODD_LENGTH 1604
+#define REENCODER_UTF16_ERR_UNPAIRED_HIGH 1601
+#define REENCODER_UTF16_ERR_UNPAIRED_LOW 1602
+#define REENCODER_UTF16_ERR_ODD_LENGTH 1603
 static const char* _REENCODER_UTF16_OUTCOME_ARR[] = {
 	"[UTF-16: Valid] Well-formed UTF-16 string",
 	"[UTF-16: Invalid] Unpaired high surrogate",
 	"[UTF-16: Invalid] Unpaired low surrogate",
-	"[UTF-16: Invalid] Overlong encoding for 4 byte sequence",
 	"[UTF-16: Invalid] String byte length not a multiple of 2"
 };
 
 #define _REENCODER_UTF32_PARSE_OFFSET 3200
 #define REENCODER_UTF32_VALID 3200
-#define REENCODER_UTF32_OUT_OF_RANGE 3201
-#define REENCODER_UTF32_SURROGATE_PAIR 3202
-#define REENCODER_UTF32_ODD_LENGTH 3203
+#define REENCODER_UTF32_ERR_OUT_OF_RANGE 3201
+#define REENCODER_UTF32_ERR_SURROGATE_PAIR 3202
+#define REENCODER_UTF32_ERR_ODD_LENGTH 3203
 static const char* _REENCODER_UTF32_OUTCOME_ARR[] = {
 	"[UTF-32: Valid] Well-formed UTF-32 string",
 	"[UTF-32: Invalid] Out of valid Unicode range (>U+10FFFF)",

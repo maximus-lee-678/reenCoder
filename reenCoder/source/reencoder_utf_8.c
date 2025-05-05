@@ -435,7 +435,7 @@ static size_t reencoder_utf8_determine_num_chars(const uint8_t* string) {
 	size_t examined_index = 0;
 	size_t num_utf8_chars = 0;
 
-	while (string[examined_index] != '\0') {
+	while (string[examined_index] != 0x00) {
 		unsigned int utf8_char_len = _reencoder_utf8_determine_length_from_first_byte(string[examined_index]);
 		if (utf8_char_len == 0) {
 			return 0;

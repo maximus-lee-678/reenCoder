@@ -3,11 +3,20 @@
 #define _REENCODER_UTF16_REPLACEMENT_CHARACTER 0xFFFD
 
 static inline uint16_t* _reencoder_utf16_grow_buffer(uint16_t* buffer, size_t* current_buffer_size, unsigned int allocate_only_one_unit);
+
+/**
+ * @brief Determines the number of UTF-16 characters, not bytes in a string.
+ *
+ * @param[in] string UTF-16 string to be checked. Should be represented as an array of uint16_t.
+ *
+ * @return Number of UTF-16 characters in the string.
+ */
+static size_t reencoder_utf16_determine_num_chars(const uint16_t* string);
+
 static inline unsigned int _reencoder_utf16_char_is_valid(uint32_t code_unit_1, uint32_t code_unit_2, unsigned int potential_surrogate_pair);
 static inline unsigned int _reencoder_utf16_validity_check_1_is_not_surrogate(uint32_t code_unit);
 static inline unsigned int _reencoder_utf16_validity_check_2_is_high_surrogate(uint32_t code_unit);
 static inline unsigned int _reencoder_utf16_validity_check_3_is_low_surrogate(uint32_t code_unit);
-static inline unsigned int _reencoder_utf16_validity_check_4_is_not_overlong(uint32_t code_unit_1, uint32_t code_unit_2);
 
 // ##### //
 // https://datatracker.ietf.org/doc/html/rfc2781/
@@ -24,7 +33,8 @@ ReencoderUnicodeStruct* reencoder_utf16_parse_uint16(const uint16_t* string, enu
 	size_t string_size_bytes = string_length_uint16 * sizeof(uint16_t);
 
 	return _reencoder_unicode_struct_express_populate(
-		target_endian, (const void*)string, string_size_bytes, _reencoder_utf16_seq_is_valid(string, string_length_uint16), string_length_uint16
+		target_endian, (const void*)string, string_size_bytes, 
+		_reencoder_utf16_seq_is_valid(string, string_length_uint16), reencoder_utf16_determine_num_chars(string)
 	);
 }
 
@@ -46,7 +56,7 @@ ReencoderUnicodeStruct* reencoder_utf16_parse_uint8(const uint8_t* string, size_
 	// odd number of bytes is impossible for UTF-16
 	if (bytes % 2 != 0) {
 		return _reencoder_unicode_struct_express_populate(
-			_reencoder_is_system_little_endian() ? UTF_16LE : UTF_16BE, (const void*)string_uint16, bytes, REENCODER_UTF16_ODD_LENGTH, 0
+			_reencoder_is_system_little_endian() ? UTF_16LE : UTF_16BE, (const void*)string_uint16, bytes, REENCODER_UTF16_ERR_ODD_LENGTH, 0
 		);
 	}
 
@@ -332,6 +342,29 @@ static inline uint16_t* _reencoder_utf16_grow_buffer(uint16_t* buffer, size_t* c
 	return (uint16_t*)_reencoder_grow_buffer(buffer, current_buffer_size, allocate_only_one_unit, sizeof(uint16_t));
 }
 
+static size_t reencoder_utf16_determine_num_chars(const uint16_t* string) {
+	// REENCODER_UTF_16 STATIC FUNCTION DEFINITION
+
+	size_t examined_index = 0;
+	size_t num_utf16_chars = 0;
+
+	while (string[examined_index] != 0x0000) {
+		unsigned int is_surrogate_half = !_reencoder_utf16_validity_check_1_is_not_surrogate(string[examined_index]);
+
+		if (is_surrogate_half) {
+			num_utf16_chars++;
+			examined_index += 2;
+		}
+		else {
+			num_utf16_chars++;
+			examined_index += 1;
+
+		}
+	}
+
+	return num_utf16_chars;
+}
+
 static inline unsigned int _reencoder_utf16_char_is_valid(uint32_t code_unit_1, uint32_t code_unit_2, unsigned int potential_surrogate_pair) {
 	// REENCODER_UTF_16 STATIC FUNCTION DEFINITION
 
@@ -339,13 +372,10 @@ static inline unsigned int _reencoder_utf16_char_is_valid(uint32_t code_unit_1, 
 		return REENCODER_UTF16_VALID;
 	}
 	if (!_reencoder_utf16_validity_check_2_is_high_surrogate(code_unit_1)) {
-		return REENCODER_UTF16_UNPAIRED_LOW;
+		return REENCODER_UTF16_ERR_UNPAIRED_LOW;
 	}
 	if (potential_surrogate_pair && !_reencoder_utf16_validity_check_3_is_low_surrogate(code_unit_2)) {
-		return REENCODER_UTF16_UNPAIRED_HIGH;
-	}
-	if (!_reencoder_utf16_validity_check_4_is_not_overlong(code_unit_1, code_unit_2)) {
-		return REENCODER_UTF16_OVERLONG_ENCODING;
+		return REENCODER_UTF16_ERR_UNPAIRED_HIGH;
 	}
 
 	return REENCODER_UTF16_VALID;
@@ -367,18 +397,4 @@ static inline unsigned int _reencoder_utf16_validity_check_3_is_low_surrogate(ui
 	// REENCODER_UTF_16 STATIC FUNCTION DEFINITION
 
 	return code_unit >= 0xDC00 && code_unit <= 0xDFFF; // low surrogates (0xDC00-0xDFFF)
-}
-
-static inline unsigned int _reencoder_utf16_validity_check_4_is_not_overlong(uint32_t code_unit_1, uint32_t code_unit_2) {
-	// REENCODER_UTF_16 STATIC FUNCTION DEFINITION
-	
-	// overlong encoding check, although overlong isn't specified as an error in UTF-16, we still want to
-	// reject useless surrogate pairs that encode a character than could fit in 2 bytes as a 4 byte sequence
-	// https://en.wikipedia.org/wiki/UTF-16#Code_points_from_U+010000_to_U+10FFFF
-	// U' = yyyyyyyyyyxxxxxxxxxx  -> U - 0x10000
-	// W1 = 110110yyyyyyyyyy      -> 0xD800 + yyyyyyyyyy
-	// W2 = 110111xxxxxxxxxx      -> 0xDC00 + xxxxxxxxxx
-	// ensure that U' could not have been encoded in a single 16-bit code unit
-	// does not check for surrogate pairs, that should be handled upstream
-	return (((code_unit_1 - 0xD800) << 10) | (code_unit_2 - 0xDC00)) > 0xFFFF;
 }

@@ -55,7 +55,7 @@ ReencoderUnicodeStruct* reencoder_utf32_parse_uint8(
 			_reencoder_is_system_little_endian() ? UTF_32LE : UTF_32BE,
 			(const void*)string_uint32,
 			bytes,
-			REENCODER_UTF32_ODD_LENGTH,
+			REENCODER_UTF32_ERR_ODD_LENGTH,
 			0
 		);
 
@@ -329,10 +329,10 @@ static inline unsigned int _reencoder_utf32_char_is_valid(uint32_t code_unit) {
 	// REENCODER_UTF_32 STATIC FUNCTION DEFINITION
 
 	if (!_reencoder_utf32_validity_check_1_is_valid_range(code_unit)) {
-		return REENCODER_UTF32_OUT_OF_RANGE;
+		return REENCODER_UTF32_ERR_OUT_OF_RANGE;
 	}
 	if (!_reencoder_utf32_validity_check_2_is_not_surrogate(code_unit)) {
-		return REENCODER_UTF32_SURROGATE_PAIR;
+		return REENCODER_UTF32_ERR_SURROGATE_PAIR;
 	}
 
 	return REENCODER_UTF32_VALID;
