@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <setjmp.h>
 #include <cmocka.h>
-#include "reencoder_test_utf_strings.h"
+#include "reencoder_test_utf_common.h"
 #include "../headers/reencoder_utf_16.h"
 
 static ReencoderUnicodeStruct _reencoder_test_struct_utf_16_2_byte = {
