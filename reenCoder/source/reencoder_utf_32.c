@@ -332,7 +332,7 @@ static inline unsigned int _reencoder_utf32_char_is_valid(uint32_t code_unit) {
 		return REENCODER_UTF32_ERR_OUT_OF_RANGE;
 	}
 	if (!_reencoder_utf32_validity_check_2_is_not_surrogate(code_unit)) {
-		return REENCODER_UTF32_ERR_SURROGATE_PAIR;
+		return REENCODER_UTF32_ERR_SURROGATE;
 	}
 
 	return REENCODER_UTF32_VALID;

@@ -79,12 +79,12 @@ static const char* _REENCODER_UTF16_OUTCOME_ARR[] = {
 #define _REENCODER_UTF32_PARSE_OFFSET 3200
 #define REENCODER_UTF32_VALID 3200
 #define REENCODER_UTF32_ERR_OUT_OF_RANGE 3201
-#define REENCODER_UTF32_ERR_SURROGATE_PAIR 3202
+#define REENCODER_UTF32_ERR_SURROGATE 3202
 #define REENCODER_UTF32_ERR_ODD_LENGTH 3203
 static const char* _REENCODER_UTF32_OUTCOME_ARR[] = {
 	"[UTF-32: Valid] Well-formed UTF-32 string",
 	"[UTF-32: Invalid] Out of valid Unicode range (>U+10FFFF)",
-	"[UTF-32: Invalid] Surrogate pair detected (U+D800-U+DFFF)",
+	"[UTF-32: Invalid] Surrogate code unit detected (U+D800-U+DFFF)",
 	"[UTF-32: Invalid] String byte length not a multiple of 4"
 };
 
