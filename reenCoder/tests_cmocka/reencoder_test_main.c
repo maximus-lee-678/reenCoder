@@ -24,10 +24,9 @@ int main(void) {
 	total_tests += sizeof(__reencoder_utf_32_test_array) / sizeof(__reencoder_utf_32_test_array[0]);
 	total_failed += failed;
 
-	int passed = total_tests - total_failed;
 	printf("\n==== TEST SUMMARY ====\n");
 	printf("Total tests : %d\n", total_tests);
-	printf("Passed      : %d\n", passed);
+	printf("Passed      : %d\n", total_tests - total_failed);
 	printf("Failed      : %d\n", total_failed);
 	printf("======================\n");
 

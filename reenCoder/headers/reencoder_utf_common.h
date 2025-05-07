@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include <stdio.h>
 
 #define _REENCODER_BASE_STRING_BYTE_SIZE 256
 #define _REENCODER_BASE_STRING_GROW_RATE 4

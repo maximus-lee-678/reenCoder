@@ -80,6 +80,8 @@ void _reencoder_test_invalid_utf_16_u8be_only_low_surrogate_sequence(void** stat
 // Other encodings to UTF-16
 void _reencoder_test_valid_utf_16_from_utf_8(void** state);
 void _reencoder_test_valid_utf_16_from_utf_32(void** state);
+void _reencoder_test_invalid_utf_16_from_utf_8(void** state);
+void _reencoder_test_invalid_utf_16_from_utf_32(void** state);
 
 static struct CMUnitTest __reencoder_utf_16_test_array[] = {
 	// UTF-16 uint16_t
@@ -104,4 +106,6 @@ static struct CMUnitTest __reencoder_utf_16_test_array[] = {
 	// Other encodings to UTF-16
 	cmocka_unit_test_teardown(_reencoder_test_valid_utf_16_from_utf_8, _reencoder_test_teardown_buffer),
 	cmocka_unit_test_teardown(_reencoder_test_valid_utf_16_from_utf_32, _reencoder_test_teardown_buffer),
+	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_16_from_utf_8, _reencoder_test_teardown_buffer),
+	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_16_from_utf_32, _reencoder_test_teardown_buffer),
 };

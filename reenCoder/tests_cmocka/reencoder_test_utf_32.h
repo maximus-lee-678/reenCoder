@@ -60,6 +60,8 @@ void _reencoder_test_invalid_utf_32_u8be_out_of_range(void** state);
 // Other encodings to UTF-32
 void _reencoder_test_valid_utf_32_from_utf_8(void** state);
 void _reencoder_test_valid_utf_32_from_utf_16(void** state);
+void _reencoder_test_invalid_utf_32_from_utf_8(void** state);
+void _reencoder_test_invalid_utf_32_from_utf_16(void** state);
 
 static struct CMUnitTest __reencoder_utf_32_test_array[] = {
 	// UTF-32 uint32_t
@@ -80,4 +82,6 @@ static struct CMUnitTest __reencoder_utf_32_test_array[] = {
 	// Other encodings to UTF-32
 	cmocka_unit_test_teardown(_reencoder_test_valid_utf_32_from_utf_8, _reencoder_test_teardown_buffer),
 	cmocka_unit_test_teardown(_reencoder_test_valid_utf_32_from_utf_16, _reencoder_test_teardown_buffer),
+	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_32_from_utf_8, _reencoder_test_teardown_buffer),
+	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_32_from_utf_16, _reencoder_test_teardown_buffer),
 };
