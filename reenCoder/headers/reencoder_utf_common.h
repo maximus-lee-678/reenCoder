@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #define _REENCODER_BASE_STRING_BYTE_SIZE 256
 #define _REENCODER_BASE_STRING_GROW_RATE 4
@@ -91,46 +92,6 @@ static const char* _REENCODER_UTF32_OUTCOME_ARR[] = {
 #define _REENCODER_UNICODE_REPLACEMENT_CHARACTER 0xFFFD
 
 /**
- * @brief Initialises a `ReencoderUnicodeStruct` with the provided string type.
- *
- * Intended for internal use by reencoder_utf_* functions which require a base.
- * string_buffer is set to NULL, string_validity to 0, num_chars to 0, and num_bytes to 0.
- *
- * @param[in] string_type The type of the string to be parsed. Must be one of the `ReencoderEncodeType` enum values.
- *
- * @return Pointer to a default `ReencoderUnicodeStruct`.
- *
- * @note The returned `ReencoderUnicodeStruct` must be freed using `reencoder_unicode_struct_free()`.
- */
-ReencoderUnicodeStruct* _reencoder_unicode_struct_init(enum ReencoderEncodeType string_type);
-
-
-/**
- * @brief Initialises a `ReencoderUnicodeStruct` dynamically based on provided parameters.
- *
- * Intended for internal use by reencoder_utf_* functions.
- * string_type is copied as-is.
- * string_buffer is updated dynamically based on string_type; UTF_8 is copied directly while UTF_16 and UTF_32 undergo any needed endianness conversion.
- * string_validity is copied as-is.
- * num_chars is populated to the provided value IF the string is valid, otherwise it is left as default 0.
- * num_bytes is copied as-is (from string_buffer_bytes).
- *
- * @param[in] string_type The type of the string to be parsed. Must be one of the `ReencoderEncodeType` enum values.
- * @param[in] string_buffer Provided string buffer to be copied into the `ReencoderUnicodeStruct`. Data type should match the provided string_type.
- * @param[in] string_buffer_bytes Byte size of string buffer.
- * @param[in] string_validity String validity parsed value.
- * @param[in] num_chars Number of characters present in string buffer. Only populated if string_validity is valid.
- *
- * @return Pointer to a default `ReencoderUnicodeStruct`.
- *
- * @note The returned `ReencoderUnicodeStruct` must be freed using `reencoder_unicode_struct_free()`.
- */
-ReencoderUnicodeStruct* _reencoder_unicode_struct_express_populate(
-	enum ReencoderEncodeType string_type, const void* string_buffer, size_t string_buffer_bytes,
-	unsigned int string_validity, size_t num_chars
-);
-
-/**
  * @brief Frees a `ReencoderUnicodeStruct` and its string buffer.
  *
  * @param[in] unicode_struct Pointer to the `ReencoderUnicodeStruct` to be freed.
@@ -171,9 +132,9 @@ const char* reencoder_outcome_as_str(unsigned int outcome, enum ReencoderEncodeT
  *
  * The returned `ReencoderUnicodeStruct` must be freed using `reencoder_unicode_struct_free()` once it is no longer needed.
  *
- * @param[in] source_encoding Specifies source encoding type (UTF-8, UTF_16BE, UTF_16LE, UTF_32BE, or UTF_32LE).
+ * @param[in] source_encoding Specifies source encoding type (UTF-8, UTF_16BE, UTF_16LE, UTF_32BE, or UTF_32LE). Source endian should follow system endianness, obtainable using `_reencoder_is_system_little_endian()`.
  * @param[in] target_encoding Specifies target encoding type (UTF-8, UTF_16BE, UTF_16LE, UTF_32BE, or UTF_32LE).
- * @param[in] source_uint_buffer Input UTF string. Must be null-terminated: 0x00 (UTF-8), 0x0000 (UTF-16), and 0x00000000 (UTF-32).
+ * @param[in] source_uint_buffer Input UTF string. Must be represented as a uint8_t* (UTF-8), uint16_t* (UTF-16), or uint32_t* (UTF-32) and cast to const void*. Must be null-terminated: 0x00 (UTF-8), 0x0000 (UTF-16), and 0x00000000 (UTF-32).
  *
  * @return Pointer to a `ReencoderUnicodeStruct` containing data for a string encoded in provided target encoding type.
  * @retval Pointer to a `ReencoderUnicodeStruct` containing data for a string encoded in provided source encoding type if the provided string is invalid.
@@ -188,7 +149,47 @@ ReencoderUnicodeStruct* reencoder_convert(enum ReencoderEncodeType source_encodi
  *
  * @return 1 if the system is little-endian, 0 if the system is big-endian.
  */
-uint8_t _reencoder_is_system_little_endian();
+uint8_t reencoder_is_system_little_endian();
+
+/**
+ * @brief Initialises a `ReencoderUnicodeStruct` with the provided string type.
+ *
+ * Intended for internal use by reencoder_utf_* functions which require a base.
+ * string_buffer is set to NULL, string_validity to 0, num_chars to 0, and num_bytes to 0.
+ *
+ * @param[in] string_type The type of the string to be parsed. Must be one of the `ReencoderEncodeType` enum values.
+ *
+ * @return Pointer to a default `ReencoderUnicodeStruct`.
+ *
+ * @note The returned `ReencoderUnicodeStruct` must be freed using `reencoder_unicode_struct_free()`.
+ */
+ReencoderUnicodeStruct* _reencoder_unicode_struct_init(enum ReencoderEncodeType string_type);
+
+
+/**
+ * @brief Initialises a `ReencoderUnicodeStruct` dynamically based on provided parameters.
+ *
+ * Intended for internal use by reencoder_utf_* functions.
+ * string_type is copied as-is.
+ * string_buffer is updated dynamically based on string_type; UTF_8 is copied directly while UTF_16 and UTF_32 undergo any needed endianness conversion.
+ * string_validity is copied as-is.
+ * num_chars is populated to the provided value IF the string is valid, otherwise it is left as default 0.
+ * num_bytes is copied as-is (from string_buffer_bytes).
+ *
+ * @param[in] string_type The type of the string to be parsed. Must be one of the `ReencoderEncodeType` enum values.
+ * @param[in] string_buffer Provided string buffer to be copied into the `ReencoderUnicodeStruct`. Data type should match the provided string_type.
+ * @param[in] string_buffer_bytes Byte size of string buffer.
+ * @param[in] string_validity String validity parsed value.
+ * @param[in] num_chars Number of characters present in string buffer. Only populated if string_validity is valid.
+ *
+ * @return Pointer to a default `ReencoderUnicodeStruct`.
+ *
+ * @note The returned `ReencoderUnicodeStruct` must be freed using `reencoder_unicode_struct_free()`.
+ */
+ReencoderUnicodeStruct* _reencoder_unicode_struct_express_populate(
+	enum ReencoderEncodeType string_type, const void* string_buffer, size_t string_buffer_bytes,
+	unsigned int string_validity, size_t num_chars
+);
 
 /**
  * @brief Initialises or grows a buffer for UTF-8/16/32 encoding.

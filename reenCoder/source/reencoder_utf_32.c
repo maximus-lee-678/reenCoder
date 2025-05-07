@@ -52,7 +52,7 @@ ReencoderUnicodeStruct* reencoder_utf32_parse_uint8(
 	// bytes not in multiples of 4 is impossible for UTF-32
 	if (bytes % sizeof(uint32_t) != 0) {
 		ReencoderUnicodeStruct* struct_utf32_str = _reencoder_unicode_struct_express_populate(
-			_reencoder_is_system_little_endian() ? UTF_32LE : UTF_32BE,
+			reencoder_is_system_little_endian() ? UTF_32LE : UTF_32BE,
 			(const void*)string_uint32,
 			bytes,
 			REENCODER_UTF32_ERR_ODD_LENGTH,
@@ -147,7 +147,7 @@ ReencoderUnicodeStruct* reencoder_utf32_parse_from_utf16(const uint16_t* string,
 	unsigned int input_utf16_validity = _reencoder_utf16_seq_is_valid(string, string_length);
 	if (input_utf16_validity != REENCODER_UTF16_VALID) {
 		return _reencoder_unicode_struct_express_populate(
-			_reencoder_is_system_little_endian() ? UTF_16LE : UTF_16BE, (const void*)string, string_size_bytes, input_utf16_validity, 0
+			reencoder_is_system_little_endian() ? UTF_16LE : UTF_16BE, (const void*)string, string_size_bytes, input_utf16_validity, 0
 		);
 	}
 
@@ -236,7 +236,7 @@ void _reencoder_utf32_uint32_from_uint8(uint32_t* dest, const uint8_t* src, size
 	size_t extra_bytes = bytes_adjusted - bytes;
 	size_t code_units = bytes_adjusted / sizeof(uint32_t);
 
-	if (_reencoder_is_system_little_endian() == (source_endian == UTF_32LE)) {
+	if (reencoder_is_system_little_endian() == (source_endian == UTF_32LE)) {
 		memcpy(dest, src, bytes);
 	}
 	else {

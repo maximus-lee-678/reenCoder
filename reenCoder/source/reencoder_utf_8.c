@@ -48,7 +48,7 @@ ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf16(const uint16_t* string) 
 	unsigned int input_utf16_validity = _reencoder_utf16_seq_is_valid(string, string_length);
 	if (input_utf16_validity != REENCODER_UTF16_VALID) {
 		return _reencoder_unicode_struct_express_populate(
-			_reencoder_is_system_little_endian() ? UTF_16LE : UTF_16BE, (const void*)string, string_size_bytes, input_utf16_validity, 0
+			reencoder_is_system_little_endian() ? UTF_16LE : UTF_16BE, (const void*)string, string_size_bytes, input_utf16_validity, 0
 		);
 	}
 
@@ -106,7 +106,7 @@ ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf32(const uint32_t* string) 
 	unsigned int input_utf32_validity = _reencoder_utf32_seq_is_valid(string, string_length);
 	if (input_utf32_validity != REENCODER_UTF32_VALID) {
 		return _reencoder_unicode_struct_express_populate(
-			_reencoder_is_system_little_endian() ? UTF_32LE : UTF_32BE, (const void*)string, string_size_bytes, input_utf32_validity, 0
+			reencoder_is_system_little_endian() ? UTF_32LE : UTF_32BE, (const void*)string, string_size_bytes, input_utf32_validity, 0
 		);
 	}
 

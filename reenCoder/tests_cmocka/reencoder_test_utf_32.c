@@ -122,3 +122,23 @@ void _reencoder_test_invalid_utf_32_u8be_out_of_range(void** state) {
 
 	*state = struct_actual;
 }
+
+void _reencoder_test_valid_utf_32_from_utf_8(void** state) {
+	(void)state;
+
+	ReencoderUnicodeStruct* struct_actual = reencoder_convert(
+		UTF_8, UTF_32LE, _reencoder_test_string_utf_8_valid_long_sequence
+	);
+	_reencoder_test_struct_equal(&_reencoder_test_struct_utf_32_valid_long_sequence, struct_actual);
+
+	*state = struct_actual;
+}
+
+void _reencoder_test_valid_utf_32_from_utf_16(void** state) {
+	(void)state;
+	ReencoderUnicodeStruct* struct_actual = reencoder_convert(
+		reencoder_is_system_little_endian ? UTF_16LE : UTF_16BE, UTF_32LE, _reencoder_test_string_utf_16_u16_valid_long_sequence
+	);
+	_reencoder_test_struct_equal(&_reencoder_test_struct_utf_32_valid_long_sequence, struct_actual);
+	*state = struct_actual;
+}

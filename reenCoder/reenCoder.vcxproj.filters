@@ -68,7 +68,7 @@
     <ClInclude Include="tests_cmocka\reencoder_test_utf_8.h">
       <Filter>Test Files</Filter>
     </ClInclude>
-    <ClInclude Include="tests_cmocka\reencoder_test_utf_common.h">
+    <ClInclude Include="tests_cmocka\reencoder_test_utf_definitions.h">
       <Filter>Test Files</Filter>
     </ClInclude>
     <ClInclude Include="tests_cmocka\reencoder_test_utf_16.h">

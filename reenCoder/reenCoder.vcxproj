@@ -147,7 +147,7 @@
     <ClInclude Include="tests_cmocka\reencoder_test_utf_16.h" />
     <ClInclude Include="tests_cmocka\reencoder_test_utf_32.h" />
     <ClInclude Include="tests_cmocka\reencoder_test_utf_8.h" />
-    <ClInclude Include="tests_cmocka\reencoder_test_utf_common.h" />
+    <ClInclude Include="tests_cmocka\reencoder_test_utf_definitions.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
