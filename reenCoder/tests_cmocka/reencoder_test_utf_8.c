@@ -1,46 +1,46 @@
 ﻿#include "reencoder_test_utf_8.h"
 
-void _reencoder_test_valid_utf_8_1_byte_sequence(void** state) {
+void _reencoder_test_valid_utf_8_valid_1_byte(void** state) {
     (void)state;
 
-    ReencoderUnicodeStruct* struct_actual = reencoder_utf8_parse(_reencoder_test_string_utf_8_1_byte);
-	_reencoder_test_struct_equal(&_reencoder_test_struct_utf_8_1_byte, struct_actual);
+    ReencoderUnicodeStruct* struct_actual = reencoder_utf8_parse(_reencoder_test_string_utf_8_valid_1_byte);
+	_reencoder_test_struct_equal(&_reencoder_test_struct_utf_8_valid_1_byte, struct_actual);
 
     *state = struct_actual;
 }
 
-void _reencoder_test_valid_utf_8_2_byte_sequence(void** state) {
+void _reencoder_test_valid_utf_8_valid_2_byte(void** state) {
     (void)state;
 
-    ReencoderUnicodeStruct* struct_actual = reencoder_utf8_parse(_reencoder_test_string_utf_8_2_byte);
-    _reencoder_test_struct_equal(&_reencoder_test_struct_utf_8_2_byte, struct_actual);
+    ReencoderUnicodeStruct* struct_actual = reencoder_utf8_parse(_reencoder_test_string_utf_8_valid_2_byte);
+    _reencoder_test_struct_equal(&_reencoder_test_struct_utf_8_valid_2_byte, struct_actual);
 
     *state = struct_actual;
 }
 
-void _reencoder_test_valid_utf_8_3_byte_sequence(void** state) {
+void _reencoder_test_valid_utf_8_valid_3_byte(void** state) {
     (void)state;
 
-    ReencoderUnicodeStruct* struct_actual = reencoder_utf8_parse(_reencoder_test_string_utf_8_3_byte);
-    _reencoder_test_struct_equal(&_reencoder_test_struct_utf_8_3_byte, struct_actual);
+    ReencoderUnicodeStruct* struct_actual = reencoder_utf8_parse(_reencoder_test_string_utf_8_valid_3_byte);
+    _reencoder_test_struct_equal(&_reencoder_test_struct_utf_8_valid_3_byte, struct_actual);
 
     *state = struct_actual;
 }
 
-void _reencoder_test_valid_utf_8_4_byte_sequence(void** state) {
+void _reencoder_test_valid_utf_8_valid_4_byte(void** state) {
     (void)state;
 
-    ReencoderUnicodeStruct* struct_actual = reencoder_utf8_parse(_reencoder_test_string_utf_8_4_byte);
-    _reencoder_test_struct_equal(&_reencoder_test_struct_utf_8_4_byte, struct_actual);
+    ReencoderUnicodeStruct* struct_actual = reencoder_utf8_parse(_reencoder_test_string_utf_8_valid_4_byte);
+    _reencoder_test_struct_equal(&_reencoder_test_struct_utf_8_valid_4_byte, struct_actual);
 
     *state = struct_actual;
 }
 
-void _reencoder_test_valid_utf_8_long_sequence(void** state) {
+void _reencoder_test_valid_utf_8_valid_long_sequence(void** state) {
     (void)state;
 
-    ReencoderUnicodeStruct* struct_actual = reencoder_utf8_parse(_reencoder_test_string_utf_8_long_sequence);
-    _reencoder_test_struct_equal(&_reencoder_test_struct_utf_8_long_sequence, struct_actual);
+    ReencoderUnicodeStruct* struct_actual = reencoder_utf8_parse(_reencoder_test_string_utf_8_valid_long_sequence);
+    _reencoder_test_struct_equal(&_reencoder_test_struct_utf_8_valid_long_sequence, struct_actual);
     
     *state = struct_actual;
 }
