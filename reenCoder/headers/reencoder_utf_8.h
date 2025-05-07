@@ -23,42 +23,6 @@
 ReencoderUnicodeStruct* reencoder_utf8_parse(const uint8_t* string);
 
 /**
- * @brief Parses a given UTF-16 uint16_t* sequence and converts it to UTF-8 before loading it into a `ReencoderUnicodeStruct`.
- *
- * Input string must be represented as uint16_t*.
- * The returned `ReencoderUnicodeStruct` will be fully initialised if the string is valid.
- * If the provided UTF-16 string is invalid, a ReencoderUnicodeStruct handling the UTF-16 string directly will be returned.
- * ReencoderUnicodeStruct->num_chars will be 0 if the string is invalid (both UTF-8 and UTF-16).
- *
- * The returned `ReencoderUnicodeStruct` must be freed using `reencoder_unicode_struct_free()` once it is no longer needed.
- *
- * @param[in] string Input UTF-16 string. Must be null-terminated (0x0000).
- *
- * @return Pointer to a `ReencoderUnicodeStruct` containing parsed string data for a UTF-8 string.
- * @retval Pointer to a `ReencoderUnicodeStruct` containing parsed string data for a UTF-16 string if the provided UTF-16 string is invalid.
- * @retval NULL If memory allocation fails.
- */
-ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf16(const uint16_t* string);
-
-/**
- * @brief Parses a given UTF-32 uint32_t* sequence and converts it to UTF-8 before loading it into a `ReencoderUnicodeStruct`.
- *
- * Input string must be represented as uint32_t*.
- * The returned `ReencoderUnicodeStruct` will be fully initialised if the string is valid.
- * If the provided UTF-32 string is invalid, a ReencoderUnicodeStruct handling the UTF-32 string directly will be returned.
- * ReencoderUnicodeStruct->num_chars will be 0 if the string is invalid (both UTF-8 and UTF-32).
- *
- * The returned `ReencoderUnicodeStruct` must be freed using `reencoder_unicode_struct_free()` once it is no longer needed.
- *
- * @param[in] string Input UTF-32 string. Must be null-terminated (0x00000000).
- *
- * @return Pointer to a `ReencoderUnicodeStruct` containing parsed string data for a UTF-8 string.
- * @retval Pointer to a `ReencoderUnicodeStruct` containing parsed string data for a UTF-32 string if the provided UTF-32 string is invalid.
- * @retval NULL If memory allocation fails.
- */
-ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf32(const uint32_t* string);
-
-/**
  * @brief Checks if a given UTF-8 string contains multibyte sequences.
  *
  * String is represented as a uint8_t*.
@@ -85,6 +49,15 @@ uint8_t reencoder_utf8_contains_multibyte(const uint8_t* string);
  * @return Unsigned integer representing the outcome of the check. Corresponds to index in `REENCODER_UTF8_OUTCOME_ARR` after offsets.
  */
 unsigned int _reencoder_utf8_seq_is_valid(const uint8_t* string);
+
+/**
+ * @brief Determines the number of UTF-8 characters, not bytes in a string.
+ *
+ * @param[in] string UTF-8 string to be checked. Should be represented as an array of uint8_t.
+ *
+ * @return Number of UTF-8 characters in the string.
+ */
+size_t _reencoder_utf8_determine_num_chars(const uint8_t* string);
 
 /**
  * @brief Given a single UTF-8 starting byte, determines how many bytes this character is.

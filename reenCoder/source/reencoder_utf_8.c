@@ -2,17 +2,6 @@
 
 static const uint8_t _REENCODER_UTF8_REPLACEMENT_CHARACTER[] = { 0xEF, 0xBF, 0xBD };
 
-static inline uint8_t* _reencoder_utf8_grow_buffer(uint8_t* buffer, size_t* current_buffer_size, unsigned int allocate_only_one_unit);
-
-/**
- * @brief Determines the number of UTF-8 characters, not bytes in a string.
- *
- * @param[in] string UTF-8 string to be checked. Should be represented as an array of uint8_t.
- *
- * @return Number of UTF-8 characters in the string.
- */
-static size_t reencoder_utf8_determine_num_chars(const uint8_t* string);
-
 static inline unsigned int _reencoder_utf8_char_is_valid(uint8_t code_units[4], unsigned int num_units);
 static inline unsigned int _reencoder_utf8_validity_check_1_is_expected_length(uint8_t code_units[4], unsigned int num_units);
 static inline unsigned int _reencoder_utf8_validity_check_2_has_valid_continuation_bytes(uint8_t code_units[4], unsigned int num_units);
@@ -32,125 +21,8 @@ ReencoderUnicodeStruct* reencoder_utf8_parse(const uint8_t* string) {
 	// i'll be back, hopefully
 
 	ReencoderUnicodeStruct* struct_utf8_str = _reencoder_unicode_struct_express_populate(
-		UTF_8, (const void*)string, strlen(string), _reencoder_utf8_seq_is_valid(string), reencoder_utf8_determine_num_chars(string)
+		UTF_8, (const void*)string, strlen(string), _reencoder_utf8_seq_is_valid(string), _reencoder_utf8_determine_num_chars(string)
 	);
-
-	return struct_utf8_str;
-}
-
-ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf16(const uint16_t* string) {
-	// REENCODER_UTF_8 USER FUNCTION DEFINITION
-
-	size_t string_length = _reencoder_utf16_strlen(string);
-	size_t string_size_bytes = string_length * sizeof(uint16_t);
-
-	// check if utf-16 is valid, if not, return a utf-16 struct
-	unsigned int input_utf16_validity = _reencoder_utf16_seq_is_valid(string, string_length);
-	if (input_utf16_validity != REENCODER_UTF16_VALID) {
-		return _reencoder_unicode_struct_express_populate(
-			reencoder_is_system_little_endian() ? UTF_16LE : UTF_16BE, (const void*)string, string_size_bytes, input_utf16_validity, 0
-		);
-	}
-
-	// begin conversion utf-16 -> utf-8
-	size_t utf8_index = 0;
-	size_t utf8_buffer_size = 0;
-	uint8_t* utf8_output_buffer = NULL;
-
-	// assumes utf-16 is well-formed, since we already checked earlier
-	const uint16_t* ptr_read = string;
-	while (*ptr_read) {
-		// grow buffer if uninitialised or out of space
-		if ((utf8_index + 4) * sizeof(uint8_t) > utf8_buffer_size) {
-			utf8_output_buffer = _reencoder_utf8_grow_buffer(utf8_output_buffer, &utf8_buffer_size, 0);
-			if (utf8_output_buffer == NULL) {
-				return NULL;
-			}
-		}
-
-		unsigned int units_read = 0;
-		uint32_t code_point = _reencoder_utf16_decode_to_code_point(ptr_read, &units_read);
-		ptr_read += units_read;
-
-		unsigned int units_written = _reencoder_utf8_encode_from_code_point(utf8_output_buffer, utf8_index, code_point);
-		utf8_index += units_written;
-	}
-
-	// grow buffer if out of space (for null-terminator)
-	if (utf8_index + sizeof(uint8_t) > utf8_buffer_size) {
-		utf8_output_buffer = _reencoder_utf8_grow_buffer(utf8_output_buffer, &utf8_buffer_size, 1);
-		if (utf8_output_buffer == NULL) {
-			return NULL;
-		}
-	}
-
-	// null-terminate utf-8 output
-	utf8_output_buffer[utf8_index] = '\0';
-
-	// create utf-8 struct
-	ReencoderUnicodeStruct* struct_utf8_str = reencoder_utf8_parse(utf8_output_buffer);
-
-	// clean up other allocated memory
-	free(utf8_output_buffer);
-
-	return struct_utf8_str;
-}
-
-ReencoderUnicodeStruct* reencoder_utf8_parse_from_utf32(const uint32_t* string) {
-	// REENCODER_UTF_8 USER FUNCTION DEFINITION
-
-	size_t string_length = _reencoder_utf32_strlen(string);
-	size_t string_size_bytes = string_length * sizeof(uint32_t);
-
-	// check if utf-32 is valid, if not, return a utf-32 struct
-	unsigned int input_utf32_validity = _reencoder_utf32_seq_is_valid(string, string_length);
-	if (input_utf32_validity != REENCODER_UTF32_VALID) {
-		return _reencoder_unicode_struct_express_populate(
-			reencoder_is_system_little_endian() ? UTF_32LE : UTF_32BE, (const void*)string, string_size_bytes, input_utf32_validity, 0
-		);
-	}
-
-	// begin conversion utf-16 -> utf-32
-	size_t utf8_index = 0;
-	size_t utf8_buffer_size = 0;
-	uint8_t* utf8_output_buffer = NULL;
-
-	// assumes utf-32 is well-formed, since we already checked earlier
-	const uint32_t* ptr_read = string;
-	while (*ptr_read) {
-		// grow buffer if uninitialised or out of space
-		if ((utf8_index + 4) * sizeof(uint8_t) > utf8_buffer_size) {
-			utf8_output_buffer = _reencoder_utf8_grow_buffer(utf8_output_buffer, &utf8_buffer_size, 0);
-			if (utf8_output_buffer == NULL) {
-				return NULL;
-			}
-		}
-
-		unsigned int units_read = 0;
-		uint32_t code_point = _reencoder_utf32_decode_to_code_point(ptr_read, &units_read);
-		ptr_read += units_read;
-
-		unsigned int units_written = _reencoder_utf8_encode_from_code_point(utf8_output_buffer, utf8_index, code_point);
-		utf8_index += units_written;
-	}
-
-
-	// grow buffer if out of space (for null-terminator)
-	if (utf8_index + sizeof(uint8_t) > utf8_buffer_size) {
-		utf8_output_buffer = _reencoder_utf8_grow_buffer(utf8_output_buffer, &utf8_buffer_size, 1);
-		if (utf8_output_buffer == NULL) {
-			return NULL;
-		}
-	}
-
-	// null-terminate utf-8 output
-	utf8_output_buffer[utf8_index] = '\0';
-
-	// create utf-8 struct
-	ReencoderUnicodeStruct* struct_utf8_str = reencoder_utf8_parse(utf8_output_buffer);
-
-	// clean up other allocated memory
-	free(utf8_output_buffer);
 
 	return struct_utf8_str;
 }
@@ -201,6 +73,26 @@ unsigned int _reencoder_utf8_seq_is_valid(const uint8_t* string) {
 
 	return REENCODER_UTF8_VALID;
 }
+
+
+size_t _reencoder_utf8_determine_num_chars(const uint8_t* string) {
+	// REENCODER_UTF_8 INTERNAL FUNCTION DEFINITION
+
+	size_t examined_index = 0;
+	size_t num_utf8_chars = 0;
+
+	while (string[examined_index] != 0x00) {
+		unsigned int utf8_char_len = _reencoder_utf8_determine_length_from_first_byte(string[examined_index]);
+		if (utf8_char_len == 0) {
+			return 0;
+		}
+		examined_index += utf8_char_len;
+		num_utf8_chars++;
+	}
+
+	return num_utf8_chars;
+}
+
 
 unsigned int _reencoder_utf8_determine_length_from_first_byte(uint8_t first_byte) {
 	// REENCODER_UTF_8 INTERNAL FUNCTION DEFINITION
@@ -303,12 +195,6 @@ unsigned int _reencoder_utf8_encode_from_code_point(uint8_t* buffer, size_t inde
 		memcpy(&buffer[index], _REENCODER_UTF8_REPLACEMENT_CHARACTER, sizeof(_REENCODER_UTF8_REPLACEMENT_CHARACTER));
 		return sizeof(_REENCODER_UTF8_REPLACEMENT_CHARACTER);
 	}
-}
-
-static inline uint8_t* _reencoder_utf8_grow_buffer(uint8_t* buffer, size_t* current_buffer_size, unsigned int allocate_only_one_unit) {
-	// REENCODER_UTF_8 STATIC FUNCTION DEFINITION
-
-	return (uint8_t*)_reencoder_grow_buffer(buffer, current_buffer_size, allocate_only_one_unit, sizeof(uint8_t));
 }
 
 static inline unsigned int _reencoder_utf8_char_is_valid(uint8_t code_units[4], unsigned int num_units) {
@@ -427,22 +313,4 @@ static inline unsigned int _reencoder_utf8_validity_check_5_is_not_surrogate(uin
 		return 0;
 	}
 	return 1;
-}
-
-static size_t reencoder_utf8_determine_num_chars(const uint8_t* string) {
-	// REENCODER_UTF_8 STATIC FUNCTION DEFINITION
-
-	size_t examined_index = 0;
-	size_t num_utf8_chars = 0;
-
-	while (string[examined_index] != 0x00) {
-		unsigned int utf8_char_len = _reencoder_utf8_determine_length_from_first_byte(string[examined_index]);
-		if (utf8_char_len == 0) {
-			return 0;
-		}
-		examined_index += utf8_char_len;
-		num_utf8_chars++;
-	}
-
-	return num_utf8_chars;
 }

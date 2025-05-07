@@ -2,7 +2,6 @@
 
 #define _REENCODER_UTF32_REPLACEMENT_CHARACTER 0x0000FFFD
 
-static inline uint32_t* _reencoder_utf32_grow_buffer(uint32_t* buffer, size_t* current_buffer_size, unsigned int allocate_only_one_unit);
 static inline unsigned int _reencoder_utf32_char_is_valid(uint32_t code_unit);
 static inline unsigned int _reencoder_utf32_validity_check_1_is_valid_range(uint32_t code_unit);
 static unsigned int _reencoder_utf32_validity_check_2_is_not_surrogate(uint32_t code_unit);
@@ -66,131 +65,6 @@ ReencoderUnicodeStruct* reencoder_utf32_parse_uint8(
 
 	// clean up other allocated memory
 	free(string_uint32);
-
-	return struct_utf32_str;
-}
-
-ReencoderUnicodeStruct* reencoder_utf32_parse_from_utf8(const uint8_t* string, enum ReencoderEncodeType target_endian) {
-	// REENCODER_UTF_32 USER FUNCTION DEFINITION
-
-	if (target_endian != UTF_32BE && target_endian != UTF_32LE) {
-		return NULL;
-	}
-
-	size_t string_length = strlen(string);
-	size_t string_size_bytes = string_length * sizeof(uint8_t);
-
-	// check if utf-8 is valid, if not, return a utf-8 struct
-	unsigned int input_utf8_validity = _reencoder_utf8_seq_is_valid(string);
-	if (input_utf8_validity != REENCODER_UTF8_VALID) {
-		return _reencoder_unicode_struct_express_populate(
-			UTF_8, (const void*)string, string_size_bytes, input_utf8_validity, 0
-		);
-	}
-
-	// begin conversion utf-8 -> utf-32
-	size_t utf32_index = 0;
-	size_t utf32_buffer_size = 0;
-	uint32_t* utf32_output_buffer = NULL;
-
-	// assumes utf-8 is well-formed, since we already checked earlier
-	const uint8_t* ptr_read = string;
-	while (*ptr_read) {
-		// grow buffer if uninitialised or out of space
-		// maximum a utf-8 character can be is 1 utf-32 character (4 bytes)
-		if ((utf32_index + 1) * sizeof(uint32_t) > utf32_buffer_size) {
-			utf32_output_buffer = _reencoder_utf32_grow_buffer(utf32_output_buffer, &utf32_buffer_size, 0);
-			if (utf32_output_buffer == NULL) {
-				return NULL;
-			}
-		}
-
-		unsigned int units_read = 0;
-		uint32_t code_point = _reencoder_utf8_decode_to_code_point(ptr_read, &units_read);
-		ptr_read += units_read;
-
-		unsigned int units_written = _reencoder_utf32_encode_from_code_point(utf32_output_buffer, utf32_index, code_point);
-		utf32_index += units_written;
-	}
-
-	// grow buffer if out of space (for null-terminator)
-	if (utf32_index + sizeof(uint32_t) > utf32_buffer_size) {
-		utf32_output_buffer = _reencoder_utf32_grow_buffer(utf32_output_buffer, &utf32_buffer_size, 1);
-		if (utf32_output_buffer == NULL) {
-			return NULL;
-		}
-	}
-
-	// null-terminate utf-32 output
-	utf32_output_buffer[utf32_index] = '\0';
-
-	// create utf-32 struct
-	ReencoderUnicodeStruct* struct_utf32_str = reencoder_utf32_parse_uint32(utf32_output_buffer, target_endian);
-
-	// clean up other allocated memory
-	free(utf32_output_buffer);
-
-	return struct_utf32_str;
-}
-
-ReencoderUnicodeStruct* reencoder_utf32_parse_from_utf16(const uint16_t* string, enum ReencoderEncodeType target_endian) {
-	// REENCODER_UTF_32 USER FUNCTION DEFINITION
-
-	if (target_endian != UTF_32BE && target_endian != UTF_32LE) {
-		return NULL;
-	}
-
-	size_t string_length = _reencoder_utf16_strlen(string);
-	size_t string_size_bytes = string_length * sizeof(uint16_t);
-
-	// check if utf-16 is valid, if not, return a utf-16 struct
-	unsigned int input_utf16_validity = _reencoder_utf16_seq_is_valid(string, string_length);
-	if (input_utf16_validity != REENCODER_UTF16_VALID) {
-		return _reencoder_unicode_struct_express_populate(
-			reencoder_is_system_little_endian() ? UTF_16LE : UTF_16BE, (const void*)string, string_size_bytes, input_utf16_validity, 0
-		);
-	}
-
-	// begin conversion utf-16 -> utf-32
-	size_t utf32_index = 0;
-	size_t utf32_buffer_size = 0;
-	uint32_t* utf32_output_buffer = NULL;
-
-	// assumes utf-16 is well-formed, since we already checked earlier
-	const uint16_t* ptr_read = string;
-	while (*ptr_read) {
-		// grow buffer if uninitialised or out of space
-		if ((utf32_index + 1) * sizeof(uint32_t) > utf32_buffer_size) {
-			utf32_output_buffer = _reencoder_utf32_grow_buffer(utf32_output_buffer, &utf32_buffer_size, 0);
-			if (utf32_output_buffer == NULL) {
-				return NULL;
-			}
-		}
-
-		unsigned int units_read = 0;
-		uint32_t code_point = _reencoder_utf16_decode_to_code_point(ptr_read, &units_read);
-		ptr_read += units_read;
-
-		unsigned int units_written = _reencoder_utf32_encode_from_code_point(utf32_output_buffer, utf32_index, code_point);
-		utf32_index += units_written;
-	}
-
-	// grow buffer if out of space (for null-terminator)
-	if (utf32_index + sizeof(uint32_t) > utf32_buffer_size) {
-		utf32_output_buffer = _reencoder_utf32_grow_buffer(utf32_output_buffer, &utf32_buffer_size, 1);
-		if (utf32_output_buffer == NULL) {
-			return NULL;
-		}
-	}
-
-	// null-terminate utf-32 output
-	utf32_output_buffer[utf32_index] = '\0';
-
-	// create utf-32 struct
-	ReencoderUnicodeStruct* struct_utf32_str = reencoder_utf32_parse_uint32(utf32_output_buffer, target_endian);
-
-	// clean up other allocated memory
-	free(utf32_output_buffer);
 
 	return struct_utf32_str;
 }

@@ -46,44 +46,6 @@ ReencoderUnicodeStruct* reencoder_utf32_parse_uint8(
 );
 
 /**
- * @brief Parses a given UTF-8 uint8_t* sequence and converts it to UTF-32 before loading it into a `ReencoderUnicodeStruct`.
- *
- * Input string must be represented as uint32_t*.
- * The returned `ReencoderUnicodeStruct` will be fully initialised if the string is valid.
- * If the provided UTF-8 string is invalid, a ReencoderUnicodeStruct handling the UTF-8 string directly will be returned.
- * ReencoderUnicodeStruct->num_chars will be 0 if the string is invalid (both UTF-8 and UTF-32).
- *
- * The returned `ReencoderUnicodeStruct` must be freed using `reencoder_unicode_struct_free()` once it is no longer needed.
- *
- * @param[in] string Input UTF-8 string. Must be null-terminated (0x00).
- * @param[in] target_endian Specifies target UTF-32 endianness (UTF_32BE or UTF_32LE).
- *
- * @return Pointer to a `ReencoderUnicodeStruct` containing parsed string data for a UTF-32 string.
- * @retval Pointer to a `ReencoderUnicodeStruct` containing parsed string data for a UTF-8 string if the provided UTF-8 string is invalid.
- * @retval NULL If memory allocation fails or an invalid `target_endian` is provided.
- */
-ReencoderUnicodeStruct* reencoder_utf32_parse_from_utf8(const uint8_t* string, enum ReencoderEncodeType target_endian);
-
-/**
- * @brief Parses a given UTF-16 uint16_t* sequence and converts it to UTF-16 before loading it into a `ReencoderUnicodeStruct`.
- *
- * Input string must be represented as uint16_t*.
- * The returned `ReencoderUnicodeStruct` will be fully initialised if the string is valid.
- * If the provided UTF-16 string is invalid, a ReencoderUnicodeStruct handling the UTF-16 string directly will be returned.
- * ReencoderUnicodeStruct->num_chars will be 0 if the string is invalid (both UTF-16 and UTF-32).
- *
- * The returned `ReencoderUnicodeStruct` must be freed using `reencoder_unicode_struct_free()` once it is no longer needed.
- *
- * @param[in] string Input UTF-8 string. Must be null-terminated (0x00).
- * @param[in] target_endian Specifies target UTF-32 endianness (UTF_32BE or UTF_32LE).
- *
- * @return Pointer to a `ReencoderUnicodeStruct` containing parsed string data for a UTF-32 string.
- * @retval Pointer to a `ReencoderUnicodeStruct` containing parsed string data for a UTF-8 string if the provided UTF-8 string is invalid.
- * @retval NULL If memory allocation fails or an invalid `target_endian` is provided.
- */
-ReencoderUnicodeStruct* reencoder_utf32_parse_from_utf16(const uint16_t* string, enum ReencoderEncodeType target_endian);
-
-/**
  * @brief Returns the length of a UTF-32 string.
  *
  * Length in this case is not number of bytes, but number of uint32_t elements.

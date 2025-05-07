@@ -2,17 +2,6 @@
 
 #define _REENCODER_UTF16_REPLACEMENT_CHARACTER 0xFFFD
 
-static inline uint16_t* _reencoder_utf16_grow_buffer(uint16_t* buffer, size_t* current_buffer_size, unsigned int allocate_only_one_unit);
-
-/**
- * @brief Determines the number of UTF-16 characters, not bytes in a string.
- *
- * @param[in] string UTF-16 string to be checked. Should be represented as an array of uint16_t.
- *
- * @return Number of UTF-16 characters in the string.
- */
-static size_t reencoder_utf16_determine_num_chars(const uint16_t* string);
-
 static inline unsigned int _reencoder_utf16_char_is_valid(uint32_t code_unit_1, uint32_t code_unit_2, unsigned int potential_surrogate_pair);
 static inline unsigned int _reencoder_utf16_validity_check_1_is_not_surrogate(uint32_t code_unit);
 static inline unsigned int _reencoder_utf16_validity_check_2_is_high_surrogate(uint32_t code_unit);
@@ -34,7 +23,7 @@ ReencoderUnicodeStruct* reencoder_utf16_parse_uint16(const uint16_t* string, enu
 
 	return _reencoder_unicode_struct_express_populate(
 		target_endian, (const void*)string, string_size_bytes, 
-		_reencoder_utf16_seq_is_valid(string, string_length_uint16), reencoder_utf16_determine_num_chars(string)
+		_reencoder_utf16_seq_is_valid(string, string_length_uint16), _reencoder_utf16_determine_num_chars(string)
 	);
 }
 
@@ -68,128 +57,39 @@ ReencoderUnicodeStruct* reencoder_utf16_parse_uint8(const uint8_t* string, size_
 	return struct_utf16_str;
 }
 
-ReencoderUnicodeStruct* reencoder_utf16_parse_from_utf8(const uint8_t* string, enum ReencoderEncodeType target_endian) {
-	// REENCODER_UTF_16 USER FUNCTION DEFINITION
+size_t _reencoder_utf16_strlen(const uint16_t* string) {
+	// REENCODER_UTF_16 INTERNAL FUNCTION DEFINITION
+	// ALSO DECLARED AS EXTERN IN reencoder_utf_common.h
 
-	if (target_endian != UTF_16BE && target_endian != UTF_16LE) {
-		return NULL;
+	const uint16_t* ptr_start = string;
+	const uint16_t* ptr_end = ptr_start;
+
+	while (*ptr_end != 0x0000) {
+		ptr_end++;
 	}
 
-	size_t string_length = strlen(string);
-	size_t string_size_bytes = string_length;
-
-	// check if utf-8 is valid, if not, return a utf-8 struct
-	unsigned int input_utf8_validity = _reencoder_utf8_seq_is_valid(string);
-	if (input_utf8_validity != REENCODER_UTF8_VALID) {
-		return _reencoder_unicode_struct_express_populate(
-			UTF_8, (const void*)string, string_size_bytes, input_utf8_validity, 0
-		);
-	}
-
-	// begin conversion utf-8 -> utf-16
-	size_t utf16_index = 0;
-	size_t utf16_buffer_size = 0;
-	uint16_t* utf16_output_buffer = NULL;
-
-	// assumes utf8 is well-formed, since we already checked earlier
-	const uint8_t* ptr_read = string;
-	while (*ptr_read) {
-		// grow buffer if uninitialised or out of space
-		if ((utf16_index + 2) * sizeof(uint16_t) > utf16_buffer_size) {
-			utf16_output_buffer = _reencoder_utf16_grow_buffer(utf16_output_buffer, &utf16_buffer_size, 0);
-			if (utf16_output_buffer == NULL) {
-				return NULL;
-			}
-		}
-
-		unsigned int units_read = 0;
-		uint32_t code_point = _reencoder_utf8_decode_to_code_point(ptr_read, &units_read);
-		ptr_read += units_read;
-
-		unsigned int units_written = _reencoder_utf16_encode_from_code_point(utf16_output_buffer, utf16_index, code_point);
-		utf16_index += units_written;
-	}
-
-	// grow buffer if out of space (for null-terminator)
-	if ((utf16_index * sizeof(uint16_t)) + sizeof(uint16_t) > utf16_buffer_size) {
-		utf16_output_buffer = _reencoder_utf16_grow_buffer(utf16_output_buffer, &utf16_buffer_size, 1);
-		if (utf16_output_buffer == NULL) {
-			return NULL;
-		}
-	}
-
-	// null-terminate utf-16 output
-	utf16_output_buffer[utf16_index] = 0x0000;
-
-	// create utf-16 struct
-	ReencoderUnicodeStruct* struct_utf16_str = reencoder_utf16_parse_uint16(utf16_output_buffer, target_endian);
-
-	// clean up other allocated memory
-	free(utf16_output_buffer);
-
-	return struct_utf16_str;
+	return ptr_end - ptr_start;
 }
 
-ReencoderUnicodeStruct* reencoder_utf16_parse_from_utf32(const uint32_t* string, enum ReencoderEncodeType target_endian) {
-	// REENCODER_UTF_16 USER FUNCTION DEFINITION
+size_t _reencoder_utf16_determine_num_chars(const uint16_t* string) {
+	// REENCODER_UTF_16 INTERNAL FUNCTION DEFINITION
 
-	if (target_endian != UTF_16BE && target_endian != UTF_16LE) {
-		return NULL;
-	}
+	size_t examined_index = 0;
+	size_t num_utf16_chars = 0;
 
-	size_t string_length = _reencoder_utf32_strlen(string);
-	size_t string_size_bytes = string_length * sizeof(uint32_t);
+	while (string[examined_index] != 0x0000) {
+		unsigned int is_surrogate_half = !_reencoder_utf16_validity_check_1_is_not_surrogate(string[examined_index]);
 
-	// check if utf-32 is valid, if not, return a utf-32 struct
-	unsigned int input_utf32_validity = _reencoder_utf32_seq_is_valid(string, string_length);
-	if (input_utf32_validity != REENCODER_UTF32_VALID) {
-		return _reencoder_unicode_struct_express_populate(
-			reencoder_is_system_little_endian() ? UTF_32LE : UTF_32BE, (const void*)string, string_size_bytes, input_utf32_validity, 0
-		);
-	}
-
-	// begin conversion utf-32 -> utf-16
-	size_t utf16_index = 0;
-	size_t utf16_buffer_size = 0;
-	uint16_t* utf16_output_buffer = NULL;
-
-	// assumes utf32 is well-formed, since we already checked earlier
-	const uint32_t* ptr_read = string;
-	while (*ptr_read) {
-		// grow buffer if uninitialised or out of space
-		if ((utf16_index + 2) * sizeof(uint16_t) > utf16_buffer_size) {
-			utf16_output_buffer = _reencoder_utf16_grow_buffer(utf16_output_buffer, &utf16_buffer_size, 0);
-			if (utf16_output_buffer == NULL) {
-				return NULL;
-			}
+		if (is_surrogate_half) {
+			examined_index += 2;
 		}
-
-		unsigned int units_read = 0;
-		uint32_t code_point = _reencoder_utf32_decode_to_code_point(ptr_read, &units_read);
-		ptr_read += units_read;
-
-		unsigned int units_written = _reencoder_utf16_encode_from_code_point(utf16_output_buffer, utf16_index, code_point);
-		utf16_index += units_written;
-	}
-
-	// grow buffer if out of space (for null-terminator)
-	if ((utf16_index * sizeof(uint16_t)) + sizeof(uint16_t) > utf16_buffer_size) {
-		utf16_output_buffer = _reencoder_utf16_grow_buffer(utf16_output_buffer, &utf16_buffer_size, 1);
-		if (utf16_output_buffer == NULL) {
-			return NULL;
+		else {
+			examined_index += 1;
 		}
+		num_utf16_chars++;
 	}
 
-	// null-terminate utf-16 output
-	utf16_output_buffer[utf16_index] = 0x0000;
-
-	// create utf-16 struct
-	ReencoderUnicodeStruct* struct_utf16_str = reencoder_utf16_parse_uint16(utf16_output_buffer, target_endian);
-
-	// clean up other allocated memory
-	free(utf16_output_buffer);
-
-	return struct_utf16_str;
+	return num_utf16_chars;
 }
 
 unsigned int _reencoder_utf16_seq_is_valid(const uint16_t* string, size_t length) {
@@ -213,20 +113,6 @@ unsigned int _reencoder_utf16_seq_is_valid(const uint16_t* string, size_t length
 	}
 
 	return REENCODER_UTF16_VALID;
-}
-
-size_t _reencoder_utf16_strlen(const uint16_t* string) {
-	// REENCODER_UTF_16 INTERNAL FUNCTION DEFINITION
-	// ALSO DECLARED AS EXTERN IN reencoder_utf_common.h
-
-	const uint16_t* ptr_start = string;
-	const uint16_t* ptr_end = ptr_start;
-
-	while (*ptr_end != 0x0000) {
-		ptr_end++;
-	}
-
-	return ptr_end - ptr_start;
 }
 
 void _reencoder_utf16_uint16_from_uint8(uint16_t* dest, const uint8_t* src, size_t bytes, enum ReencoderEncodeType source_endian) {
@@ -334,33 +220,6 @@ void _reencoder_utf16_write_buffer_swap_endian(uint8_t* dest, const uint16_t* sr
 		val = (val >> 8) | (val << 8); // swap bytes
 		memcpy(dest + (2 * i), &val, sizeof(uint16_t));
 	}
-}
-
-static inline uint16_t* _reencoder_utf16_grow_buffer(uint16_t* buffer, size_t* current_buffer_size, unsigned int allocate_only_one_unit) {
-	// REENCODER_UTF_16 STATIC FUNCTION DEFINITION
-
-	return (uint16_t*)_reencoder_grow_buffer(buffer, current_buffer_size, allocate_only_one_unit, sizeof(uint16_t));
-}
-
-static size_t reencoder_utf16_determine_num_chars(const uint16_t* string) {
-	// REENCODER_UTF_16 STATIC FUNCTION DEFINITION
-
-	size_t examined_index = 0;
-	size_t num_utf16_chars = 0;
-
-	while (string[examined_index] != 0x0000) {
-		unsigned int is_surrogate_half = !_reencoder_utf16_validity_check_1_is_not_surrogate(string[examined_index]);
-
-		if (is_surrogate_half) {
-			examined_index += 2;
-		}
-		else {
-			examined_index += 1;
-		}
-		num_utf16_chars++;
-	}
-
-	return num_utf16_chars;
 }
 
 static inline unsigned int _reencoder_utf16_char_is_valid(uint32_t code_unit_1, uint32_t code_unit_2, unsigned int potential_surrogate_pair) {
