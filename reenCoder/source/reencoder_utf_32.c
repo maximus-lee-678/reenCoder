@@ -2,8 +2,35 @@
 
 #define _REENCODER_UTF32_REPLACEMENT_CHARACTER 0x0000FFFD
 
+/**
+ * @brief Checks a single UTF-32 code unit for validity.
+ *
+ * @param[in] code_unit Input UTF-32 code unit.
+ *
+ * @return REENCODER_UTF32_VALID.
+ * @retval REENCODER_UTF32_ERR_OUT_OF_RANGE if code unit is out of valid Unicode range (>U+10FFFF).
+ * @retval REENCODER_UTF32_ERR_SURROGATE if code unit is a surrogate (U+D800-U+DFFF).
+ */
 static inline unsigned int _reencoder_utf32_char_is_valid(uint32_t code_unit);
+
+/**
+ * @brief Checks if a single UTF-32 code unit is in valid Unicode range (<U+10FFFF).
+ *
+ * @param[in] code_unit Input UTF-32 code unit.
+ *
+ * @return 1 if code unit is valid.
+ * @retval 0 if code unit is invalid
+ */
 static inline unsigned int _reencoder_utf32_validity_check_1_is_valid_range(uint32_t code_unit);
+
+/**
+ * @brief Checks if a single UTF-32 code unit is a surrogate (U+D800-U+DFFF).
+ *
+ * @param[in] code_unit Input UTF-32 code unit.
+ *
+ * @return 1 if code unit is a surrogate.
+ * @retval 0 if code unit is not a surrogate.
+ */
 static unsigned int _reencoder_utf32_validity_check_2_is_not_surrogate(uint32_t code_unit);
 
 // ##### //

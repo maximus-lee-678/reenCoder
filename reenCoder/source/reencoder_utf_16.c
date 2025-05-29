@@ -2,9 +2,47 @@
 
 #define _REENCODER_UTF16_REPLACEMENT_CHARACTER 0xFFFD
 
+/**
+ * @brief Checks a single UTF-16 code unit for validity.
+ *
+ * @param[in] code_unit_1 Input UTF-16 code unit.
+ * @param[in] code_unit_2 Input UTF-16 code unit (optional).
+ * @param[in] potential_surrogate_pair Indicates a second code unit has been passed in.
+ *
+ * @return REENCODER_UTF16_VALID.
+ * @retval REENCODER_UTF16_ERR_UNPAIRED_LOW if the first code unit is an unpaired low surrogate.
+ * @retval REENCODER_UTF16_ERR_UNPAIRED_HIGH if the second code unit is an unpaired high surrogate.
+ */
 static inline unsigned int _reencoder_utf16_char_is_valid(uint32_t code_unit_1, uint32_t code_unit_2, unsigned int potential_surrogate_pair);
+
+/**
+ * @brief Checks if a single UTF-16 code unit is not a high or low surrogate.
+ *
+ * @param[in] code_unit Input UTF-16 code unit.
+ *
+ * @return 1 if code unit is not a surrogate.
+ * @retval 0 if code unit is a surrogate.
+ */
 static inline unsigned int _reencoder_utf16_validity_check_1_is_not_surrogate(uint32_t code_unit);
+
+/**
+ * @brief Checks if a single UTF-16 code unit is a high surrogate.
+ *
+ * @param[in] code_unit Input UTF-16 code unit.
+ *
+ * @return 1 if code unit is a high surrogate.
+ * @retval 0 if code unit is not a high surrogate.
+ */
 static inline unsigned int _reencoder_utf16_validity_check_2_is_high_surrogate(uint32_t code_unit);
+
+/**
+ * @brief Checks if a single UTF-16 code unit is a low surrogate.
+ *
+ * @param[in] code_unit Input UTF-16 code unit.
+ *
+ * @return 1 if code unit is a low surrogate.
+ * @retval 0 if code unit is not a low surrogate.
+ */
 static inline unsigned int _reencoder_utf16_validity_check_3_is_low_surrogate(uint32_t code_unit);
 
 // ##### //

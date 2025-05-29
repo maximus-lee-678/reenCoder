@@ -2,11 +2,77 @@
 
 static const uint8_t _REENCODER_UTF8_REPLACEMENT_CHARACTER[] = { 0xEF, 0xBF, 0xBD };
 
+/**
+ * @brief Checks a single UTF-8 character for validity. A UTF-8 character is defined as a sequence of 1-4 code unit.
+ *
+ * @param[in] code_units Array of UTF-8 code units.
+ * @param[in] num_units Number of code units in the array.
+ *
+ * @return REENCODER_UTF8_VALID.
+ * @retval REENCODER_UTF8_ERR_INVALID_LEAD if code unit contains an invalid leading byte.
+ * @retval REENCODER_UTF8_ERR_PREMATURE_END if the character ended before the sequence completed.
+ * @retval REENCODER_UTF8_ERR_INVALID_CONT if the character contains a code unit with an invalid continuation byte.
+ * @retval REENCODER_UTF8_ERR_OVERLONG_2BYTE if the character is an overlong encoding for a 2-byte sequence.
+ * @retval REENCODER_UTF8_ERR_OVERLONG_3BYTE if the character is an overlong encoding for a 3-byte sequence.
+ * @retval REENCODER_UTF8_ERR_OVERLONG_4BYTE if the character is an overlong encoding for a 4-byte sequence.
+ * @retval REENCODER_UTF8_ERR_OUT_OF_RANGE if character is out of valid Unicode range (>U+10FFFF).
+ * @retval REENCODER_UTF8_ERR_SURROGATE_PAIR if character is a high or low surrogate character (U+D800-U+DFFF).
+ */
 static inline unsigned int _reencoder_utf8_char_is_valid(uint8_t code_units[4], unsigned int num_units);
+
+/**
+ * @brief Checks if a UTF-8 code unit sequence contains the expected number of bytes based on the first byte.
+ *
+ * @param[in] code_units Array of UTF-8 code units.
+ * @param[in] num_units Number of code units in the array.
+ *
+ * @return 1 if the sequence has the expected number of bytes.
+ * @retval 0 if the sequence does not have the expected number of bytes. (contains NULLs before the end of the sequence)
+ */
 static inline unsigned int _reencoder_utf8_validity_check_1_is_expected_length(uint8_t code_units[4], unsigned int num_units);
+
+/**
+ * @brief Checks if a UTF-8 code unit sequence contains only continuation bytes following the first byte.
+ *
+ * @param[in] code_units Array of UTF-8 code units.
+ * @param[in] num_units Number of code units in the array.
+ *
+ * @return 1 if the sequence is properly formed.
+ * @retval 0 if the sequence does not contain only continuation bytes following the first byte.
+ */
 static inline unsigned int _reencoder_utf8_validity_check_2_has_valid_continuation_bytes(uint8_t code_units[4], unsigned int num_units);
+
+/**
+ * @brief Checks if a UTF-8 code unit sequence is not overlong.
+ *
+ * @param[in] code_units Array of UTF-8 code units.
+ * @param[in] num_units Number of code units in the array.
+ *
+ * @return 1 if the sequence is not overlong.
+ * @retval 0 if the sequence is overlong.
+ */
 static inline unsigned int _reencoder_utf8_validity_check_3_is_not_overlong(uint8_t code_units[4], unsigned int num_units);
+
+/**
+ * @brief Checks if a UTF-8 code unit sequence is in valid Unicode range.
+ *
+ * @param[in] code_units Array of UTF-8 code units.
+ * @param[in] num_units Number of code units in the array.
+ *
+ * @return 1 if the sequence is in valid Unicode range.
+ * @retval 0 if the sequence is out of valid Unicode range (>U+10FFFF).
+ */
 static inline unsigned int _reencoder_utf8_validity_check_4_is_in_unicode_range(uint8_t code_units[4], unsigned int num_units);
+
+/**
+ * @brief Checks if a UTF-8 code unit sequence is not a surrogate pair.
+ *
+ * @param[in] code_units Array of UTF-8 code units.
+ * @param[in] num_units Number of code units in the array.
+ *
+ * @return 1 if the sequence is not a surrogate pair.
+ * @retval 0 if the sequence is a surrogate pair (U+D800-U+DFFF).
+ */
 static inline unsigned int _reencoder_utf8_validity_check_5_is_not_surrogate(uint8_t code_units[4], unsigned int num_units);
 
 // ##### //
@@ -27,13 +93,12 @@ ReencoderUnicodeStruct* reencoder_utf8_parse(const uint8_t* string) {
 	return struct_utf8_str;
 }
 
-uint8_t reencoder_utf8_contains_multibyte(const uint8_t* string) {
+unsigned int reencoder_utf8_contains_multibyte(const uint8_t* string) {
 	// REENCODER_UTF_8 USER FUNCTION DEFINITION
 
 	size_t examined_index = 0;
 	while (string[examined_index] != '\0') {
-		unsigned int current_utf8_length = _reencoder_utf8_determine_length_from_first_byte(string[examined_index]);
-		switch (current_utf8_length) {
+		switch (_reencoder_utf8_determine_length_from_first_byte(string[examined_index])) {
 		case 0:
 			return 0;
 		case 1:
@@ -45,6 +110,24 @@ uint8_t reencoder_utf8_contains_multibyte(const uint8_t* string) {
 	}
 
 	return 1;
+}
+
+size_t _reencoder_utf8_determine_num_chars(const uint8_t* string) {
+	// REENCODER_UTF_8 INTERNAL FUNCTION DEFINITION
+
+	size_t examined_index = 0;
+	size_t num_utf8_chars = 0;
+
+	while (string[examined_index] != 0x00) {
+		unsigned int utf8_char_len = _reencoder_utf8_determine_length_from_first_byte(string[examined_index]);
+		if (utf8_char_len == 0) {
+			return 0;
+		}
+		examined_index += utf8_char_len;
+		num_utf8_chars++;
+	}
+
+	return num_utf8_chars;
 }
 
 unsigned int _reencoder_utf8_seq_is_valid(const uint8_t* string) {
@@ -73,26 +156,6 @@ unsigned int _reencoder_utf8_seq_is_valid(const uint8_t* string) {
 
 	return REENCODER_UTF8_VALID;
 }
-
-
-size_t _reencoder_utf8_determine_num_chars(const uint8_t* string) {
-	// REENCODER_UTF_8 INTERNAL FUNCTION DEFINITION
-
-	size_t examined_index = 0;
-	size_t num_utf8_chars = 0;
-
-	while (string[examined_index] != 0x00) {
-		unsigned int utf8_char_len = _reencoder_utf8_determine_length_from_first_byte(string[examined_index]);
-		if (utf8_char_len == 0) {
-			return 0;
-		}
-		examined_index += utf8_char_len;
-		num_utf8_chars++;
-	}
-
-	return num_utf8_chars;
-}
-
 
 unsigned int _reencoder_utf8_determine_length_from_first_byte(uint8_t first_byte) {
 	// REENCODER_UTF_8 INTERNAL FUNCTION DEFINITION
