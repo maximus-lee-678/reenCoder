@@ -64,6 +64,8 @@ size_t _reencoder_utf16_strlen(const uint16_t* string);
  */
 size_t _reencoder_utf16_determine_num_chars(const uint16_t* string);
 
+unsigned int _reencoder_utf16_buffer_idx0_is_valid(const uint16_t* ptr, size_t units_left, unsigned int* units_actual);
+
 /**
  * @brief Checks if a provided UTF-16 string is valid.
  *

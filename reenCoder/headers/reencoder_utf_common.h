@@ -292,6 +292,7 @@ unsigned int _reencoder_code_point_is_valid(const uint32_t code_point);
 
 extern ReencoderUnicodeStruct* reencoder_utf8_parse(const uint8_t* string);
 extern size_t _reencoder_utf8_determine_num_chars(const uint8_t* string);
+extern unsigned int _reencoder_utf8_buffer_idx0_is_valid(const uint8_t* ptr, size_t units_left, unsigned int* units_actual);
 extern unsigned int _reencoder_utf8_seq_is_valid(const uint8_t* string);
 extern uint32_t _reencoder_utf8_decode_to_code_point(const uint8_t* ptr, unsigned int* units_read);
 extern unsigned int _reencoder_utf8_encode_from_code_point(uint8_t* buffer, size_t index, uint32_t code_point);
@@ -299,6 +300,7 @@ extern unsigned int _reencoder_utf8_encode_from_code_point(uint8_t* buffer, size
 extern ReencoderUnicodeStruct* reencoder_utf16_parse_uint16(const uint16_t* string, enum ReencoderEncodeType target_endian);
 extern size_t _reencoder_utf16_strlen(const uint16_t* string);
 extern size_t _reencoder_utf16_determine_num_chars(const uint16_t* string);
+extern unsigned int _reencoder_utf16_buffer_idx0_is_valid(const uint16_t* ptr, size_t units_left, unsigned int* units_actual);
 extern unsigned int _reencoder_utf16_seq_is_valid(const uint16_t* string, size_t length);
 extern void _reencoder_utf16_uint16_from_uint8(uint16_t* dest, const uint8_t* src, size_t bytes, enum ReencoderEncodeType source_endian);
 extern uint32_t _reencoder_utf16_decode_to_code_point(const uint16_t* ptr, unsigned int* char_units);
@@ -307,6 +309,7 @@ extern void _reencoder_utf16_write_buffer_swap_endian(uint8_t* dest, const uint1
 
 extern ReencoderUnicodeStruct* reencoder_utf32_parse_uint32(const uint32_t* string, enum ReencoderEncodeType target_endian);
 extern size_t _reencoder_utf32_strlen(const uint32_t* string);
+extern unsigned int _reencoder_utf32_buffer_idx0_is_valid(const uint32_t* ptr);
 extern unsigned int _reencoder_utf32_seq_is_valid(const uint32_t* string, size_t length);
 extern void _reencoder_utf32_uint32_from_uint8(uint32_t* dest, const uint8_t* src, size_t bytes, enum ReencoderEncodeType source_endian);
 extern uint32_t _reencoder_utf32_decode_to_code_point(const uint32_t* ptr, unsigned int* units_read);

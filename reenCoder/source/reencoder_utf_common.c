@@ -177,8 +177,8 @@ unsigned int reencoder_repair_struct(ReencoderUnicodeStruct* unicode_struct) {
 		string_num_code_units = unicode_struct->num_bytes / sizeof(uint32_t);
 	}
 
-	// change encoding, mistakes will be automatically converted to the replacement character
-	if(_reencoder_change_encoding_dynamic(
+	// change encoding, mistakes will be converted to the replacement character
+	if (_reencoder_change_encoding_dynamic(
 		source_encoding, source_encoding, string_num_code_units,
 		&output_buffer_index, &output_buffer_size, (const void*)source_uint_buffer, &output_buffer
 	) != REENCODER_CONVERT_SUCCESS) {
@@ -436,9 +436,9 @@ unsigned int _reencoder_change_encoding_dynamic(
 	if (source_buffer == NULL || output_buffer_index == NULL || output_buffer_size == NULL) {
 		return REENCODER_CONVERT_FAILURE_NULL_ARGS;
 	}
+
 	const void* ptr_read = source_buffer;
 	size_t units_processed = 0;
-
 	while (units_processed < string_num_code_units) {
 		// grow buffer if uninitialised or out of space
 		*output_buffer = _reencoder_grow_buffer_dynamic(target_encoding, *output_buffer, output_buffer_size, *output_buffer_index, 0);
@@ -446,19 +446,36 @@ unsigned int _reencoder_change_encoding_dynamic(
 			return REENCODER_CONVERT_FAILURE_OOM;
 		}
 
-		// decode 1x char
+
+		// decode 1x char while ensuring all malformations are handled gracefully
+		// decode_to_code_point has SOME error handling, but not enough to catch stuff like truncations
 		unsigned int units_read = 0;
 		uint32_t code_point = 0x00000000;
 		if (source_encoding == UTF_8) {
-			code_point = _reencoder_utf8_decode_to_code_point((const uint8_t*)ptr_read, &units_read);
+			if (_reencoder_utf8_buffer_idx0_is_valid(ptr_read, string_num_code_units - units_processed, &units_read) == REENCODER_UTF8_VALID) {
+				code_point = _reencoder_utf8_decode_to_code_point((const uint8_t*)ptr_read, &units_read);
+			}
+			else {
+				code_point = _REENCODER_UNICODE_REPLACEMENT_CHARACTER;
+			}
 			ptr_read = (const uint8_t*)ptr_read + units_read;
 		}
 		else if (source_encoding == UTF_16BE || source_encoding == UTF_16LE) {
-			code_point = _reencoder_utf16_decode_to_code_point((const uint16_t*)ptr_read, &units_read);
+			if (_reencoder_utf16_buffer_idx0_is_valid(ptr_read, string_num_code_units - units_processed, &units_read) == REENCODER_UTF16_VALID) {
+				code_point = _reencoder_utf16_decode_to_code_point((const uint16_t*)ptr_read, &units_read);
+			}
+			else {
+				code_point = _REENCODER_UNICODE_REPLACEMENT_CHARACTER;
+			}
 			ptr_read = (const uint16_t*)ptr_read + units_read;
 		}
 		else if (source_encoding == UTF_32BE || source_encoding == UTF_32LE) {
-			code_point = _reencoder_utf32_decode_to_code_point((const uint32_t*)ptr_read, &units_read);
+			if (_reencoder_utf32_buffer_idx0_is_valid(ptr_read) == REENCODER_UTF32_VALID) {
+				code_point = _reencoder_utf32_decode_to_code_point((const uint32_t*)ptr_read, &units_read);
+			}
+			else {
+				code_point = _REENCODER_UNICODE_REPLACEMENT_CHARACTER;
+			}
 			ptr_read = (const uint32_t*)ptr_read + units_read;
 		}
 

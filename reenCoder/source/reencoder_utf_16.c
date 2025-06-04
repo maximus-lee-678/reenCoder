@@ -131,25 +131,27 @@ size_t _reencoder_utf16_determine_num_chars(const uint16_t* string) {
 	return num_utf16_chars;
 }
 
+unsigned int _reencoder_utf16_buffer_idx0_is_valid(const uint16_t* ptr, size_t units_left, unsigned int* units_actual) {
+	uint16_t code_unit_1 = ptr[0];
+	unsigned int is_potential_surrogate_pair = !_reencoder_utf16_validity_check_1_is_not_surrogate(code_unit_1);
+	uint16_t code_unit_2 = is_potential_surrogate_pair && units_left > 1 ? ptr[1] : 0x0000;
+
+	return _reencoder_utf16_char_is_valid(code_unit_1, code_unit_2, is_potential_surrogate_pair ? 2 : 1, units_actual);
+}
+
 unsigned int _reencoder_utf16_seq_is_valid(const uint16_t* string, size_t length) {
 	// REENCODER_UTF_16 INTERNAL FUNCTION DEFINITION
 	// ALSO DECLARED AS EXTERN IN reencoder_utf_common.h
 
-	for (size_t i = 0; i < length; i++) {
-		uint16_t code_unit_1 = string[i];
-		unsigned int is_potential_surrogate_pair = !_reencoder_utf16_validity_check_1_is_not_surrogate(code_unit_1);
-		uint16_t code_unit_2 = is_potential_surrogate_pair && i + 1 < length ? string[i + 1] : 0x0000;
+	for (size_t i = 0; i < length;) {
+		unsigned int units_actual = 0;
 
-		// no need to use units_actual here, if they mismatch the function will always return early
-		unsigned int return_code = _reencoder_utf16_char_is_valid(code_unit_1, code_unit_2, is_potential_surrogate_pair ? 2 : 1, NULL);
+		unsigned int return_code = _reencoder_utf16_buffer_idx0_is_valid(string + i, length - i, &units_actual);
 		if (return_code != REENCODER_UTF16_VALID) {
 			return return_code;
 		}
 
-		// skip the low surrogate for next comparison (valid pair)
-		if (is_potential_surrogate_pair) {
-			i++;
-		}
+		i += units_actual;
 	}
 
 	return REENCODER_UTF16_VALID;

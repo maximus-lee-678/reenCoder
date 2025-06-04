@@ -56,6 +56,8 @@ ReencoderUnicodeStruct* reencoder_utf32_parse_uint8(
  */
 size_t _reencoder_utf32_strlen(const uint32_t* string);
 
+unsigned int _reencoder_utf32_buffer_idx0_is_valid(const uint32_t* ptr);
+
 /**
  * @brief Checks if a provided UTF-32 string is valid.
  *

@@ -110,14 +110,16 @@ size_t _reencoder_utf32_strlen(const uint32_t* string) {
 	return ptr_end - ptr_start;
 }
 
+unsigned int _reencoder_utf32_buffer_idx0_is_valid(const uint32_t* ptr) {
+	return _reencoder_utf32_char_is_valid(ptr[0]);
+}
+
 unsigned int _reencoder_utf32_seq_is_valid(const uint32_t* string, size_t length) {
 	// REENCODER_UTF_32 INTERNAL FUNCTION DEFINITION
 	// ALSO DECLARED AS EXTERN IN reencoder_utf_common.h
 
 	for (size_t i = 0; i < length; i++) {
-		uint32_t code_point = string[i];
-
-		unsigned int return_code = _reencoder_utf32_char_is_valid(code_point);
+		unsigned int return_code = _reencoder_utf32_buffer_idx0_is_valid(string + i);
 		if (return_code != REENCODER_UTF32_VALID) {
 			return return_code;
 		}

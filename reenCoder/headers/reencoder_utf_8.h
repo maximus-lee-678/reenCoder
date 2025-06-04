@@ -48,6 +48,8 @@ unsigned int reencoder_utf8_contains_multibyte(const uint8_t* string);
  */
 size_t _reencoder_utf8_determine_num_chars(const uint8_t* string);
 
+unsigned int _reencoder_utf8_buffer_idx0_is_valid(const uint8_t* ptr, size_t units_left, unsigned int* units_actual);
+
 /**
  * @brief Checks if a provided UTF-8 string is valid.
  *

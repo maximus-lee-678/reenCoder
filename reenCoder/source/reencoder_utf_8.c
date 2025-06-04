@@ -134,29 +134,35 @@ size_t _reencoder_utf8_determine_num_chars(const uint8_t* string) {
 	return num_utf8_chars;
 }
 
+unsigned int _reencoder_utf8_buffer_idx0_is_valid(const uint8_t* ptr, size_t units_left, unsigned int* units_actual) {
+	unsigned int units_expected = _reencoder_utf8_determine_length_from_first_byte(ptr[0]);
+
+	// segfault moment
+	uint8_t char_bytes[4] = {
+		(units_expected > 0 && units_left > 0) ? ptr[0] : 0x00,
+		(units_expected > 1 && units_left > 1) ? ptr[1] : 0x00,
+		(units_expected > 2 && units_left > 2) ? ptr[2] : 0x00,
+		(units_expected > 3 && units_left > 3) ? ptr[3] : 0x00
+	};
+
+	return _reencoder_utf8_char_is_valid(char_bytes, units_expected, units_actual);
+}
+
 unsigned int _reencoder_utf8_seq_is_valid(const uint8_t* string) {
 	// REENCODER_UTF_8 INTERNAL FUNCTION DEFINITION
 	// ALSO DECLARED AS EXTERN IN reencoder_utf_common.h
 
-	size_t examined_index = 0;
+	size_t input_string_len = strlen(string);
 
-	while (string[examined_index] != 0x00) {
-		unsigned int units_expected = _reencoder_utf8_determine_length_from_first_byte(string[examined_index]);
+	for (size_t i = 0; i < input_string_len;) {
+		unsigned int units_actual = 0;
 
-		uint8_t char_bytes[4] = {
-			units_expected > 0 ? string[examined_index] : 0x00,
-			units_expected > 1 ? string[examined_index + 1] : 0x00,
-			units_expected > 2 ? string[examined_index + 2] : 0x00,
-			units_expected > 3 ? string[examined_index + 3] : 0x00
-		};
-
-		// no need to use units_actual here, if they mismatch the function will always return early
-		unsigned int return_code = _reencoder_utf8_char_is_valid(char_bytes, units_expected, NULL);
+		unsigned int return_code = _reencoder_utf8_buffer_idx0_is_valid(string + i, input_string_len - i, &units_actual);
 		if (return_code != REENCODER_UTF8_VALID) {
 			return return_code;
 		}
 
-		examined_index += units_expected;
+		i += units_actual;
 	}
 
 	return REENCODER_UTF8_VALID;
