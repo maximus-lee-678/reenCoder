@@ -6,14 +6,15 @@
  * @brief Checks a single UTF-16 code unit for validity.
  *
  * @param[in] code_unit_1 Input UTF-16 code unit.
- * @param[in] code_unit_2 Input UTF-16 code unit (optional).
- * @param[in] potential_surrogate_pair Indicates a second code unit has been passed in.
+ * @param[in] code_unit_2 Input UTF-16 code unit (optional, can be NULL or 0x0000).
+ * @param[in] units_expected Expected number of code units in the sequence (exactly 1 or 2, no validation is done on this argument!).
+ * @param[out] units_actual Pointer to an unsigned integer where the actual number of code units will be stored. Can be NULL if not needed.
  *
  * @return REENCODER_UTF16_VALID.
  * @retval REENCODER_UTF16_ERR_UNPAIRED_LOW if the first code unit is an unpaired low surrogate.
  * @retval REENCODER_UTF16_ERR_UNPAIRED_HIGH if the second code unit is an unpaired high surrogate.
  */
-static inline unsigned int _reencoder_utf16_char_is_valid(uint32_t code_unit_1, uint32_t code_unit_2, unsigned int potential_surrogate_pair);
+static inline unsigned int _reencoder_utf16_char_is_valid(uint32_t code_unit_1, uint32_t code_unit_2, unsigned int units_expected, unsigned int* units_actual);
 
 /**
  * @brief Checks if a single UTF-16 code unit is not a high or low surrogate.
@@ -60,7 +61,7 @@ ReencoderUnicodeStruct* reencoder_utf16_parse_uint16(const uint16_t* string, enu
 	size_t string_size_bytes = string_length_uint16 * sizeof(uint16_t);
 
 	return _reencoder_unicode_struct_express_populate(
-		target_endian, (const void*)string, string_size_bytes, 
+		target_endian, (const void*)string, string_size_bytes,
 		_reencoder_utf16_seq_is_valid(string, string_length_uint16), _reencoder_utf16_determine_num_chars(string)
 	);
 }
@@ -139,7 +140,8 @@ unsigned int _reencoder_utf16_seq_is_valid(const uint16_t* string, size_t length
 		unsigned int is_potential_surrogate_pair = !_reencoder_utf16_validity_check_1_is_not_surrogate(code_unit_1);
 		uint16_t code_unit_2 = is_potential_surrogate_pair && i + 1 < length ? string[i + 1] : 0x0000;
 
-		unsigned int return_code = _reencoder_utf16_char_is_valid(code_unit_1, code_unit_2, is_potential_surrogate_pair);
+		// no need to use units_actual here, if they mismatch the function will always return early
+		unsigned int return_code = _reencoder_utf16_char_is_valid(code_unit_1, code_unit_2, is_potential_surrogate_pair ? 2 : 1, NULL);
 		if (return_code != REENCODER_UTF16_VALID) {
 			return return_code;
 		}
@@ -260,16 +262,26 @@ void _reencoder_utf16_write_buffer_swap_endian(uint8_t* dest, const uint16_t* sr
 	}
 }
 
-static inline unsigned int _reencoder_utf16_char_is_valid(uint32_t code_unit_1, uint32_t code_unit_2, unsigned int potential_surrogate_pair) {
+static inline unsigned int _reencoder_utf16_char_is_valid(uint32_t code_unit_1, uint32_t code_unit_2, unsigned int units_expected, unsigned int* units_actual) {
 	// REENCODER_UTF_16 STATIC FUNCTION DEFINITION
 
-	if (_reencoder_utf16_validity_check_1_is_not_surrogate(code_unit_1)) {
+	if (units_actual != NULL) {
+		*units_actual = units_expected; // update later if errors found
+	}
+
+	if (units_expected == 1 && _reencoder_utf16_validity_check_1_is_not_surrogate(code_unit_1)) {
 		return REENCODER_UTF16_VALID;
 	}
 	if (!_reencoder_utf16_validity_check_2_is_high_surrogate(code_unit_1)) {
+		if (units_expected == 2 && units_actual != NULL) {
+			*units_actual = 1;
+		}
 		return REENCODER_UTF16_ERR_UNPAIRED_LOW;
 	}
-	if (potential_surrogate_pair && !_reencoder_utf16_validity_check_3_is_low_surrogate(code_unit_2)) {
+	if (units_expected == 2 && !_reencoder_utf16_validity_check_3_is_low_surrogate(code_unit_2)) {
+		if (units_actual != NULL) {
+			*units_actual = 1;
+		}
 		return REENCODER_UTF16_ERR_UNPAIRED_HIGH;
 	}
 

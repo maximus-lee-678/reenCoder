@@ -1,12 +1,16 @@
 #include "../headers/reencoder_utf_8.h"
 
+#define _REENCODER_UTF8_VALIDATION_HAS_VALID_LENGTH 0
+#define _REENCODER_UTF8_VALIDATION_HAS_VALID_CONTINUATION_BYTES 0
+
 static const uint8_t _REENCODER_UTF8_REPLACEMENT_CHARACTER[] = { 0xEF, 0xBF, 0xBD };
 
 /**
  * @brief Checks a single UTF-8 character for validity. A UTF-8 character is defined as a sequence of 1-4 code unit.
  *
  * @param[in] code_units Array of UTF-8 code units.
- * @param[in] num_units Number of code units in the array.
+ * @param[in] units_expected Number of code units in the array.
+ * @param[out] units_actual Number of actual code units. This may be less than units_expected if the sequence prematurely ends or contain invalid continuation bytes. NULL can be passed if this information is not needed.
  *
  * @return REENCODER_UTF8_VALID.
  * @retval REENCODER_UTF8_ERR_INVALID_LEAD if code unit contains an invalid leading byte.
@@ -18,16 +22,16 @@ static const uint8_t _REENCODER_UTF8_REPLACEMENT_CHARACTER[] = { 0xEF, 0xBF, 0xB
  * @retval REENCODER_UTF8_ERR_OUT_OF_RANGE if character is out of valid Unicode range (>U+10FFFF).
  * @retval REENCODER_UTF8_ERR_SURROGATE_PAIR if character is a high or low surrogate character (U+D800-U+DFFF).
  */
-static inline unsigned int _reencoder_utf8_char_is_valid(uint8_t code_units[4], unsigned int num_units);
+static inline unsigned int _reencoder_utf8_char_is_valid(uint8_t code_units[4], unsigned int units_expected, unsigned int* units_actual);
 
 /**
  * @brief Checks if a UTF-8 code unit sequence contains the expected number of bytes based on the first byte.
  *
  * @param[in] code_units Array of UTF-8 code units.
- * @param[in] num_units Number of code units in the array.
+ * @param[in] units_expected Number of code units in the array.
  *
- * @return 1 if the sequence has the expected number of bytes.
- * @retval 0 if the sequence does not have the expected number of bytes. (contains NULLs before the end of the sequence)
+ * @return _REENCODER_UTF8_VALIDATION_HAS_VALID_LENGTH if the sequence has the expected number of bytes.
+ * @retval number of actual bytes available if the sequence does not have the expected number of bytes. (contains NULLs before the end of the sequence)
  */
 static inline unsigned int _reencoder_utf8_validity_check_1_is_expected_length(uint8_t code_units[4], unsigned int num_units);
 
@@ -35,10 +39,10 @@ static inline unsigned int _reencoder_utf8_validity_check_1_is_expected_length(u
  * @brief Checks if a UTF-8 code unit sequence contains only continuation bytes following the first byte.
  *
  * @param[in] code_units Array of UTF-8 code units.
- * @param[in] num_units Number of code units in the array.
+ * @param[in] units_expected Number of code units in the array.
  *
- * @return 1 if the sequence is properly formed.
- * @retval 0 if the sequence does not contain only continuation bytes following the first byte.
+ * @return _REENCODER_UTF8_VALIDATION_HAS_VALID_CONTINUATION_BYTES if the sequence is properly formed.
+ * @retval number of bytes the sequence ran for before an invalid byte was encountered.
  */
 static inline unsigned int _reencoder_utf8_validity_check_2_has_valid_continuation_bytes(uint8_t code_units[4], unsigned int num_units);
 
@@ -46,7 +50,7 @@ static inline unsigned int _reencoder_utf8_validity_check_2_has_valid_continuati
  * @brief Checks if a UTF-8 code unit sequence is not overlong.
  *
  * @param[in] code_units Array of UTF-8 code units.
- * @param[in] num_units Number of code units in the array.
+ * @param[in] units_expected Number of code units in the array.
  *
  * @return 1 if the sequence is not overlong.
  * @retval 0 if the sequence is overlong.
@@ -57,7 +61,7 @@ static inline unsigned int _reencoder_utf8_validity_check_3_is_not_overlong(uint
  * @brief Checks if a UTF-8 code unit sequence is in valid Unicode range.
  *
  * @param[in] code_units Array of UTF-8 code units.
- * @param[in] num_units Number of code units in the array.
+ * @param[in] units_expected Number of code units in the array.
  *
  * @return 1 if the sequence is in valid Unicode range.
  * @retval 0 if the sequence is out of valid Unicode range (>U+10FFFF).
@@ -68,7 +72,7 @@ static inline unsigned int _reencoder_utf8_validity_check_4_is_in_unicode_range(
  * @brief Checks if a UTF-8 code unit sequence is not a surrogate pair.
  *
  * @param[in] code_units Array of UTF-8 code units.
- * @param[in] num_units Number of code units in the array.
+ * @param[in] units_expected Number of code units in the array.
  *
  * @return 1 if the sequence is not a surrogate pair.
  * @retval 0 if the sequence is a surrogate pair (U+D800-U+DFFF).
@@ -137,21 +141,22 @@ unsigned int _reencoder_utf8_seq_is_valid(const uint8_t* string) {
 	size_t examined_index = 0;
 
 	while (string[examined_index] != 0x00) {
-		unsigned int utf8_char_len = _reencoder_utf8_determine_length_from_first_byte(string[examined_index]);
+		unsigned int units_expected = _reencoder_utf8_determine_length_from_first_byte(string[examined_index]);
 
 		uint8_t char_bytes[4] = {
-			utf8_char_len > 0 ? string[examined_index] : 0x00,
-			utf8_char_len > 1 ? string[examined_index + 1] : 0x00,
-			utf8_char_len > 2 ? string[examined_index + 2] : 0x00,
-			utf8_char_len > 3 ? string[examined_index + 3] : 0x00
+			units_expected > 0 ? string[examined_index] : 0x00,
+			units_expected > 1 ? string[examined_index + 1] : 0x00,
+			units_expected > 2 ? string[examined_index + 2] : 0x00,
+			units_expected > 3 ? string[examined_index + 3] : 0x00
 		};
 
-		unsigned int return_code = _reencoder_utf8_char_is_valid(char_bytes, utf8_char_len);
+		// no need to use units_actual here, if they mismatch the function will always return early
+		unsigned int return_code = _reencoder_utf8_char_is_valid(char_bytes, units_expected, NULL);
 		if (return_code != REENCODER_UTF8_VALID) {
 			return return_code;
 		}
 
-		examined_index += utf8_char_len;
+		examined_index += units_expected;
 	}
 
 	return REENCODER_UTF8_VALID;
@@ -260,23 +265,36 @@ unsigned int _reencoder_utf8_encode_from_code_point(uint8_t* buffer, size_t inde
 	}
 }
 
-static inline unsigned int _reencoder_utf8_char_is_valid(uint8_t code_units[4], unsigned int num_units) {
+static inline unsigned int _reencoder_utf8_char_is_valid(uint8_t code_units[4], unsigned int units_expected, unsigned int* units_actual) {
 	// REENCODER_UTF_8 STATIC FUNCTION DEFINITION
 
-	if (num_units == 0) {
-		return REENCODER_UTF8_ERR_INVALID_LEAD;
+	unsigned int measured_units = 0;
+	if (units_actual != NULL) {
+		*units_actual = units_expected; // update later if errors found
 	}
-	if (num_units == 1) {
+
+	if (units_expected == 1) {
 		return REENCODER_UTF8_VALID;
 	}
-	if (!_reencoder_utf8_validity_check_1_is_expected_length(code_units, num_units)) {
+	if (units_expected == 0) {
+		return REENCODER_UTF8_ERR_INVALID_LEAD;
+	}
+	measured_units = _reencoder_utf8_validity_check_1_is_expected_length(code_units, units_expected);
+	if (measured_units != _REENCODER_UTF8_VALIDATION_HAS_VALID_LENGTH) {
+		if (units_actual != NULL) {
+			*units_actual = measured_units;
+		}
 		return REENCODER_UTF8_ERR_PREMATURE_END;
 	}
-	if (!_reencoder_utf8_validity_check_2_has_valid_continuation_bytes(code_units, num_units)) {
+	measured_units = _reencoder_utf8_validity_check_2_has_valid_continuation_bytes(code_units, units_expected);
+	if (measured_units != _REENCODER_UTF8_VALIDATION_HAS_VALID_CONTINUATION_BYTES) {
+		if (units_actual != NULL) {
+			*units_actual = measured_units;
+		}
 		return REENCODER_UTF8_ERR_INVALID_CONT;
 	}
-	if (!_reencoder_utf8_validity_check_3_is_not_overlong(code_units, num_units)) {
-		switch (num_units) {
+	if (!_reencoder_utf8_validity_check_3_is_not_overlong(code_units, units_expected)) {
+		switch (units_expected) {
 		case 2:
 			return REENCODER_UTF8_ERR_OVERLONG_2BYTE;
 		case 3:
@@ -285,41 +303,41 @@ static inline unsigned int _reencoder_utf8_char_is_valid(uint8_t code_units[4], 
 			return REENCODER_UTF8_ERR_OVERLONG_4BYTE;
 		}
 	}
-	if (!_reencoder_utf8_validity_check_4_is_in_unicode_range(code_units, num_units)) {
+	if (!_reencoder_utf8_validity_check_4_is_in_unicode_range(code_units, units_expected)) {
 		return REENCODER_UTF8_ERR_OUT_OF_RANGE;
 	}
-	if (!_reencoder_utf8_validity_check_5_is_not_surrogate(code_units, num_units)) {
+	if (!_reencoder_utf8_validity_check_5_is_not_surrogate(code_units, units_expected)) {
 		return REENCODER_UTF8_ERR_SURROGATE_PAIR;
 	}
 
 	return REENCODER_UTF8_VALID;
 }
 
-static inline unsigned int _reencoder_utf8_validity_check_1_is_expected_length(uint8_t code_units[4], unsigned int num_units) {
+static inline unsigned int _reencoder_utf8_validity_check_1_is_expected_length(uint8_t code_units[4], unsigned int units_expected) {
 	// REENCODER_UTF_8 STATIC FUNCTION DEFINITION
 
-	for (unsigned int i = 1; i < num_units; i++) {
+	for (unsigned int i = 1; i < units_expected; i++) {
 		if (code_units[i] == 0x00) {
-			return 0;
+			return i;
 		}
 	}
 
-	return 1;
+	return _REENCODER_UTF8_VALIDATION_HAS_VALID_LENGTH;
 }
 
-static inline unsigned int _reencoder_utf8_validity_check_2_has_valid_continuation_bytes(uint8_t code_units[4], unsigned int num_units) {
+static inline unsigned int _reencoder_utf8_validity_check_2_has_valid_continuation_bytes(uint8_t code_units[4], unsigned int units_expected) {
 	// REENCODER_UTF_8 STATIC FUNCTION DEFINITION
 
-	for (unsigned int i = 1; i < num_units; i++) {
+	for (unsigned int i = 1; i < units_expected; i++) {
 		if ((code_units[i] & 0b11000000) != 0b10000000) {
-			return 0;
+			return i;
 		}
 	}
 
-	return 1;
+	return _REENCODER_UTF8_VALIDATION_HAS_VALID_CONTINUATION_BYTES;
 }
 
-static inline unsigned int _reencoder_utf8_validity_check_3_is_not_overlong(uint8_t code_units[4], unsigned int num_units) {
+static inline unsigned int _reencoder_utf8_validity_check_3_is_not_overlong(uint8_t code_units[4], unsigned int units_expected) {
 	// REENCODER_UTF_8 STATIC FUNCTION DEFINITION
 
 	// overlong encoding check for 2-byte long characters
@@ -330,7 +348,7 @@ static inline unsigned int _reencoder_utf8_validity_check_3_is_not_overlong(uint
 	// [NUL] (U+0000) > 0b11000000 0b10000000 (0xC0 0x80) should be 0b00000000 (0x00)
 	// [@]   (U+0040) > 0b11000001 0b10000000 (0xC1 0x80) should be 0b01000000 (0x40)
 	// USABLE BITS >         xxxx-     ------                          -------
-	if (num_units == 2 && code_units[0] < 0b11000010) {
+	if (units_expected == 2 && code_units[0] < 0b11000010) {
 		return 0;
 	}
 
@@ -338,7 +356,7 @@ static inline unsigned int _reencoder_utf8_validity_check_3_is_not_overlong(uint
 	// since 2-byte long characters contain up to 11 bits (0x07FF) of info, any value smaller than that is overlong.
 	// which results in anything smaller than 0b11100000 0b10100000 0b10000000 being invalid.
 	// USABLE BITS >                                xxxx     x-----     ------
-	if (num_units == 3 && code_units[0] == 0b11100000 && code_units[1] < 0b10100000) {
+	if (units_expected == 3 && code_units[0] == 0b11100000 && code_units[1] < 0b10100000) {
 		return 0;
 	}
 
@@ -346,33 +364,33 @@ static inline unsigned int _reencoder_utf8_validity_check_3_is_not_overlong(uint
 	// since 3-byte long characters contain up to 16 bits of info, any value smaller than that is overlong.
 	// which results in anything smaller than 0b11110000 0b10010000 0b10000000 0b10000000 being invalid.
 	// USABLE BITS >                                 xxx     xx----     ------     ------
-	if (num_units == 4 && code_units[0] == 0b11110000 && code_units[1] < 0b10010000) {
+	if (units_expected == 4 && code_units[0] == 0b11110000 && code_units[1] < 0b10010000) {
 		return 0;
 	}
 
 	return 1;
 }
 
-static inline unsigned int _reencoder_utf8_validity_check_4_is_in_unicode_range(uint8_t code_units[4], unsigned int num_units) {
+static inline unsigned int _reencoder_utf8_validity_check_4_is_in_unicode_range(uint8_t code_units[4], unsigned int units_expected) {
 	// REENCODER_UTF_8 STATIC FUNCTION DEFINITION
 
 	// valid unicode range: U+0000 to U+10FFFF
 	// U+10FFFF equates to 0001 0000 1111 1111 1111 1111
 	// represented in unicode as 0b11110100 0b10001111 0b10111111 0b10111111 (4-byte character)
-	if (num_units == 4 && (code_units[0] > 0b11110100 || (code_units[0] == 0b11110100 && code_units[1] > 0b10001111))) {
+	if (units_expected == 4 && (code_units[0] > 0b11110100 || (code_units[0] == 0b11110100 && code_units[1] > 0b10001111))) {
 		return 0;
 	}
 
 	return 1;
 }
 
-static inline unsigned int _reencoder_utf8_validity_check_5_is_not_surrogate(uint8_t code_units[4], unsigned int num_units) {
+static inline unsigned int _reencoder_utf8_validity_check_5_is_not_surrogate(uint8_t code_units[4], unsigned int units_expected) {
 	// REENCODER_UTF_8 STATIC FUNCTION DEFINITION
 
 	// surrogate pairs check: U+D800 to U+DFFF
 	// equates to 0b11101101 0b10100000 0b10000000 to 
 	// ---------- 0b11101101 0b10111111 0b10111111
-	if (num_units == 3 && code_units[0] == 0b11101101 && (code_units[1] & 0b11100000) == 0b10100000) {
+	if (units_expected == 3 && code_units[0] == 0b11101101 && (code_units[1] & 0b11100000) == 0b10100000) {
 		return 0;
 	}
 	return 1;
