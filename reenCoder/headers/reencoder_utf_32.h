@@ -56,6 +56,16 @@ ReencoderUnicodeStruct* reencoder_utf32_parse_uint8(
  */
 size_t _reencoder_utf32_strlen(const uint32_t* string);
 
+/**
+ * @brief Checks if the UTF-32 character present at ptr is valid.
+ *
+ * Checks for surrogate presence, and out of range values.
+ * Checks for surrogate order, overlong encoding, and premature string endings.
+ * 
+ * @param[in] ptr Pointer to the start of the UTF-32 character in a uint32_t buffer to be checked.
+ *
+ * @return Unsigned integer representing the outcome of the check. Corresponds to index in `REENCODER_UTF32_OUTCOME_ARR` after offsets.
+ */
 unsigned int _reencoder_utf32_buffer_idx0_is_valid(const uint32_t* ptr);
 
 /**
@@ -66,7 +76,7 @@ unsigned int _reencoder_utf32_buffer_idx0_is_valid(const uint32_t* ptr);
  * @param[in] string UTF-32 string to be checked. Should be represented as an array of uint32_t.
  * @param[in] length Length of the provided string. Length is not number of bytes, but number of uint32_t elements.
  *
- * @return Unsigned integer representing the outcome of the check. Corresponds to index in `REENCODER_UTF16_OUTCOME_ARR`.
+ * @return Unsigned integer representing the outcome of the check. Corresponds to index in `REENCODER_UTF32_OUTCOME_ARR` after offsets.
  */
 unsigned int _reencoder_utf32_seq_is_valid(const uint32_t* string, size_t length);
 

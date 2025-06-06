@@ -64,6 +64,19 @@ size_t _reencoder_utf16_strlen(const uint16_t* string);
  */
 size_t _reencoder_utf16_determine_num_chars(const uint16_t* string);
 
+/**
+ * @brief Checks if the UTF-16 character present at ptr is valid.
+ *
+ * Checks for surrogate order, overlong encoding, and premature string endings.
+ * Ensures no segmentation fault occurs by always reading at most units_left bytes from ptr.
+ * Updates units_actual with the number of code units actually read.
+ *
+ * @param[in] ptr Pointer to the start of the UTF-16 character in a uint16_t buffer to be checked.
+ * @param[in] units_left Number of uint16_t units left in the buffer starting from ptr.
+ * @param[out] units_actual Pointer to an unsigned integer where the actual number of code units will be stored. Can be NULL if not needed.
+ *
+ * @return Unsigned integer representing the outcome of the check. Corresponds to index in `REENCODER_UTF16_OUTCOME_ARR` after offsets.
+ */
 unsigned int _reencoder_utf16_buffer_idx0_is_valid(const uint16_t* ptr, size_t units_left, unsigned int* units_actual);
 
 /**
@@ -74,7 +87,7 @@ unsigned int _reencoder_utf16_buffer_idx0_is_valid(const uint16_t* ptr, size_t u
  * @param[in] string UTF-16 string to be checked. Should be represented as an array of uint16_t.
  * @param[in] length Length of the provided string. Length is not number of bytes, but number of uint16_t elements.
  *
- * @return Unsigned integer representing the outcome of the check. Corresponds to index in `REENCODER_UTF16_OUTCOME_ARR`.
+ * @return Unsigned integer representing the outcome of the check. Corresponds to index in `REENCODER_UTF16_OUTCOME_ARR` after offsets.
  */
 unsigned int _reencoder_utf16_seq_is_valid(const uint16_t* string, size_t length);
 

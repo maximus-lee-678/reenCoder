@@ -283,6 +283,9 @@ static inline unsigned int _reencoder_utf8_char_is_valid(uint8_t code_units[4], 
 		return REENCODER_UTF8_VALID;
 	}
 	if (units_expected == 0) {
+		if (units_actual != NULL) {
+			*units_actual = 1; // always read at least 1 or infinite loop will happen, since we will be stuck processing the same unit over and over
+		}
 		return REENCODER_UTF8_ERR_INVALID_LEAD;
 	}
 	measured_units = _reencoder_utf8_validity_check_1_is_expected_length(code_units, units_expected);

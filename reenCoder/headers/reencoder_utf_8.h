@@ -48,6 +48,19 @@ unsigned int reencoder_utf8_contains_multibyte(const uint8_t* string);
  */
 size_t _reencoder_utf8_determine_num_chars(const uint8_t* string);
 
+/**
+ * @brief Checks if the UTF-8 character present at ptr is valid.
+ * 
+ * Checks for surrogate presence, overlong encoding, invalid bytes, and premature string endings.
+ * Ensures no segmentation fault occurs by always reading at most units_left bytes from ptr.
+ * Updates units_actual with the number of code units actually read.
+ *
+ * @param[in] ptr Pointer to the start of the UTF-8 character in a uint8_t buffer to be checked.
+ * @param[in] units_left Number of uint8_t units left in the buffer starting from ptr.
+ * @param[out] units_actual Pointer to an unsigned integer where the actual number of code units will be stored. Can be NULL if not needed.
+ *
+ * @return Unsigned integer representing the outcome of the check. Corresponds to index in `REENCODER_UTF8_OUTCOME_ARR` after offsets.
+ */
 unsigned int _reencoder_utf8_buffer_idx0_is_valid(const uint8_t* ptr, size_t units_left, unsigned int* units_actual);
 
 /**
