@@ -49,10 +49,10 @@ void _reencoder_test_invalid_utf_16_u16_odd_sequence(void** state) {
 	(void)state;
 
 	ReencoderUnicodeStruct* struct_actual = reencoder_utf16_parse_uint8(
-		_reencoder_test_string_utf_16_u8le_odd, _reencoder_test_struct_utf_16_odd.num_bytes, UTF_16LE, UTF_16LE
+		_reencoder_test_string_utf_16_u8le_odd_broken, _reencoder_test_struct_utf_16_odd_padded.num_bytes - _reencoder_test_added_bytes_utf_16_u8le_odd_padded, UTF_16LE, UTF_16LE
 	);
 
-	_reencoder_test_struct_equal(&_reencoder_test_struct_utf_16_odd, struct_actual);
+	_reencoder_test_struct_equal(&_reencoder_test_struct_utf_16_odd_padded, struct_actual);
 	*state = struct_actual;
 }
 
@@ -107,17 +107,6 @@ void _reencoder_test_invalid_utf_16_u8le_only_low_surrogate_sequence(void** stat
 		_reencoder_test_string_utf_16_u8le_only_low_surrogate, _reencoder_test_struct_utf_16_only_low_surrogate.num_bytes, UTF_16LE, UTF_16LE
 	);
 	_reencoder_test_struct_equal(&_reencoder_test_struct_utf_16_only_low_surrogate, struct_actual);
-
-	*state = struct_actual;
-}
-
-void _reencoder_test_invalid_utf_16_u8le_overlong_sequence(void** state) {
-	(void)state;
-
-	ReencoderUnicodeStruct* struct_actual = reencoder_utf16_parse_uint8(
-		_reencoder_test_string_utf_16_u8le_overlong, _reencoder_test_struct_utf_16_only_high_surrogate.num_bytes, UTF_16LE, UTF_16LE
-	);
-	_reencoder_test_struct_equal(&_reencoder_test_struct_utf_16_only_high_surrogate, struct_actual);
 
 	*state = struct_actual;
 }
@@ -214,6 +203,18 @@ void _reencoder_test_invalid_utf_16_from_utf_32(void** state) {
 		reencoder_is_system_little_endian() ? UTF_32LE : UTF_32BE, UTF_16LE, _reencoder_test_string_utf_32_u32_surrogate
 	);
 	_reencoder_test_struct_equal(&_reencoder_test_struct_utf_32_surrogate, struct_actual);
+
+	*state = struct_actual;
+}
+
+void _reencoder_test_fix_utf_16(void** state) {
+	(void)state;
+
+	ReencoderUnicodeStruct* struct_actual = reencoder_utf16_parse_uint8(
+		_reencoder_test_string_utf_16_repair_broken, _reencoder_test_struct_utf_16_repair_fixed.num_bytes - _reencoder_test_added_bytes_utf_16_u8le_repair_fixed, UTF_16LE, UTF_16LE
+	);
+	reencoder_repair_struct(struct_actual);
+	_reencoder_test_struct_equal(&_reencoder_test_struct_utf_16_repair_fixed, struct_actual);
 
 	*state = struct_actual;
 }

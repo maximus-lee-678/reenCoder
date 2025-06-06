@@ -160,3 +160,13 @@ void _reencoder_test_invalid_utf_8_from_utf_32(void** state) {
 
 	*state = struct_actual;
 }
+
+void _reencoder_test_fix_utf_8(void** state) {
+	(void)state;
+
+	ReencoderUnicodeStruct* struct_actual = reencoder_utf8_parse(_reencoder_test_string_utf_8_repair_broken);
+	reencoder_repair_struct(struct_actual);
+	_reencoder_test_struct_equal(&_reencoder_test_struct_utf_8_repair_fixed, struct_actual);
+
+	*state = struct_actual;
+}

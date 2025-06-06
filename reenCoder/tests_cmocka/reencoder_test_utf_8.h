@@ -113,6 +113,14 @@ static ReencoderUnicodeStruct _reencoder_test_struct_utf_8_out_of_range = {
 	.string_buffer = (uint8_t*)_reencoder_test_string_utf_8_out_of_range
 };
 
+static ReencoderUnicodeStruct _reencoder_test_struct_utf_8_repair_fixed = {
+	.string_type = UTF_8,
+	.string_validity = REENCODER_UTF8_VALID_REPAIRED,
+	.num_bytes = 192,
+	.num_chars = 176,
+	.string_buffer = (uint8_t*)_reencoder_test_string_utf_8_repair_fixed
+};
+
 // UTF-8 self-checks
 void _reencoder_test_valid_utf_8_valid_1_byte(void** state);
 void _reencoder_test_valid_utf_8_valid_2_byte(void** state);
@@ -134,6 +142,9 @@ void _reencoder_test_valid_utf_8_from_utf_32(void** state);
 void _reencoder_test_invalid_utf_8_from_utf_16(void** state);
 void _reencoder_test_invalid_utf_8_from_utf_32(void** state);
 
+// Repairs
+void _reencoder_test_fix_utf_8(void** state);
+
 static struct CMUnitTest __reencoder_utf_8_test_array[] = {
 	// UTF-8 uint8_t
 	cmocka_unit_test_teardown(_reencoder_test_valid_utf_8_valid_1_byte, _reencoder_test_teardown_buffer),
@@ -154,4 +165,6 @@ static struct CMUnitTest __reencoder_utf_8_test_array[] = {
 	cmocka_unit_test_teardown(_reencoder_test_valid_utf_8_from_utf_32, _reencoder_test_teardown_buffer),
 	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_from_utf_16, _reencoder_test_teardown_buffer),
 	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_from_utf_32, _reencoder_test_teardown_buffer),
+	// Repairs
+	cmocka_unit_test_teardown(_reencoder_test_fix_utf_8, _reencoder_test_teardown_buffer)
 };

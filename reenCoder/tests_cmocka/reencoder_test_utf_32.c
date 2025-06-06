@@ -166,3 +166,15 @@ void _reencoder_test_invalid_utf_32_from_utf_16(void** state) {
 	_reencoder_test_struct_equal(&_reencoder_test_struct_utf_16_only_high_surrogate, struct_actual);
 	*state = struct_actual;
 }
+
+void _reencoder_test_fix_utf_32(void** state) {
+	(void)state;
+
+	ReencoderUnicodeStruct* struct_actual = reencoder_utf32_parse_uint8(
+		_reencoder_test_string_utf_32_repair_broken, _reencoder_test_struct_utf_32_repair_fixed.num_bytes, UTF_32LE, UTF_32LE
+	);
+	reencoder_repair_struct(struct_actual);
+	_reencoder_test_struct_equal(&_reencoder_test_struct_utf_32_repair_fixed, struct_actual);
+
+	*state = struct_actual;
+}

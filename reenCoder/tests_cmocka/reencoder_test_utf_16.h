@@ -49,13 +49,23 @@ static ReencoderUnicodeStruct _reencoder_test_struct_utf_16_only_low_surrogate =
 	.string_buffer = (uint8_t*)_reencoder_test_string_utf_16_u8le_only_low_surrogate
 };
 
-static ReencoderUnicodeStruct _reencoder_test_struct_utf_16_odd = {
+static ReencoderUnicodeStruct _reencoder_test_struct_utf_16_odd_padded = {
 	.string_type = UTF_16LE,
 	.string_validity = REENCODER_UTF16_ERR_ODD_LENGTH,
-	.num_bytes = 55,
+	.num_bytes = 56,
 	.num_chars = 0,
-	.string_buffer = (uint8_t*)_reencoder_test_string_utf_16_u8le_odd
+	.string_buffer = (uint8_t*)_reencoder_test_string_utf_16_u8le_odd_padded
 };
+static unsigned int _reencoder_test_added_bytes_utf_16_u8le_odd_padded = 1; // padding from odd sequence auto-correction (1 byte -> 2 bytes)
+
+static ReencoderUnicodeStruct _reencoder_test_struct_utf_16_repair_fixed = {
+	.string_type = UTF_16LE,
+	.string_validity = REENCODER_UTF16_VALID_REPAIRED,
+	.num_bytes = 196,
+	.num_chars = 98,
+	.string_buffer = (uint8_t*)_reencoder_test_string_utf_16_repair_fixed
+};
+static unsigned int _reencoder_test_added_bytes_utf_16_u8le_repair_fixed = 1; // padding from odd sequence auto-correction (1 byte -> 2 bytes)
 
 // UTF-16 self-checks
 void _reencoder_test_valid_utf_16_u16_valid_2_byte(void** state);
@@ -83,6 +93,9 @@ void _reencoder_test_valid_utf_16_from_utf_32(void** state);
 void _reencoder_test_invalid_utf_16_from_utf_8(void** state);
 void _reencoder_test_invalid_utf_16_from_utf_32(void** state);
 
+// Repairs
+void _reencoder_test_fix_utf_16(void** state);
+
 static struct CMUnitTest __reencoder_utf_16_test_array[] = {
 	// UTF-16 uint16_t
 	cmocka_unit_test_teardown(_reencoder_test_valid_utf_16_u16_valid_2_byte, _reencoder_test_teardown_buffer),
@@ -108,4 +121,6 @@ static struct CMUnitTest __reencoder_utf_16_test_array[] = {
 	cmocka_unit_test_teardown(_reencoder_test_valid_utf_16_from_utf_32, _reencoder_test_teardown_buffer),
 	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_16_from_utf_8, _reencoder_test_teardown_buffer),
 	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_16_from_utf_32, _reencoder_test_teardown_buffer),
+	// Repairs
+	cmocka_unit_test_teardown(_reencoder_test_fix_utf_16, _reencoder_test_teardown_buffer)
 };
