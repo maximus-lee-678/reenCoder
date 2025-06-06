@@ -84,7 +84,7 @@ ReencoderUnicodeStruct* reencoder_utf16_parse_uint8(const uint8_t* string, size_
 	// odd number of bytes is impossible for UTF-16
 	if (bytes % 2 != 0) {
 		return _reencoder_unicode_struct_express_populate(
-			reencoder_is_system_little_endian() ? UTF_16LE : UTF_16BE, (const void*)string_uint16, bytes, REENCODER_UTF16_ERR_ODD_LENGTH, 0
+			reencoder_is_system_little_endian() ? UTF_16LE : UTF_16BE, (const void*)string_uint16, bytes_adjusted, REENCODER_UTF16_ERR_ODD_LENGTH, 0
 		);
 	}
 
@@ -147,6 +147,7 @@ unsigned int _reencoder_utf16_seq_is_valid(const uint16_t* string, size_t length
 		unsigned int units_actual = 0;
 
 		unsigned int return_code = _reencoder_utf16_buffer_idx0_is_valid(string + i, length - i, &units_actual);
+		printf("UTF-16 validity check at index %zu: %u (%04x)\n", i, return_code, string[i]); // Debugging output
 		if (return_code != REENCODER_UTF16_VALID) {
 			return return_code;
 		}
@@ -187,12 +188,9 @@ void _reencoder_utf16_uint16_from_uint8(uint16_t* dest, const uint8_t* src, size
 		}
 	}
 
-	// if odd number of bytes, promote the lone byte to the last code unit with msb padding
+	// if odd number of bytes, replace lone byte with replacement character
 	if (bytes != bytes_adjusted) {
-		uint8_t high = 0x00;
-		uint8_t low = src[bytes - 1];
-
-		dest[code_units - 1] = (uint16_t)((high << 8) | low);
+		dest[code_units - 1] = _REENCODER_UTF16_REPLACEMENT_CHARACTER;
 	}
 
 	dest[code_units] = 0x0000;
