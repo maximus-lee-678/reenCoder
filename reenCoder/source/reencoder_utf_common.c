@@ -474,6 +474,7 @@ unsigned int _reencoder_change_encoding_dynamic(
 				code_point = _reencoder_utf32_decode_to_code_point((const uint32_t*)ptr_read, &units_read);
 			}
 			else {
+				units_read = 1; // always read at least 1 or infinite loop will happen, since we will be stuck processing the same unit over and over (units_read isn't updated in the if check for UTF-32)
 				code_point = _REENCODER_UNICODE_REPLACEMENT_CHARACTER;
 			}
 			ptr_read = (const uint32_t*)ptr_read + units_read;
@@ -502,14 +503,15 @@ unsigned int _reencoder_change_encoding_dynamic(
 	}
 
 	// null-terminate output
+	// DO NOT increment output_buffer_index here, it will be used to be count bytes of actual characters only
 	if (target_encoding == UTF_8) {
-		((uint8_t*)*output_buffer)[(*output_buffer_index)++] = 0x00;
+		((uint8_t*)*output_buffer)[*output_buffer_index] = 0x00;
 	}
 	else if (target_encoding == UTF_16BE || target_encoding == UTF_16LE) {
-		((uint16_t*)*output_buffer)[(*output_buffer_index)++] = 0x0000;
+		((uint16_t*)*output_buffer)[*output_buffer_index] = 0x0000;
 	}
 	else if (target_encoding == UTF_32BE || target_encoding == UTF_32LE) {
-		((uint32_t*)*output_buffer)[(*output_buffer_index)++] = 0x00000000;
+		((uint32_t*)*output_buffer)[*output_buffer_index] = 0x00000000;
 	}
 
 	return REENCODER_CONVERT_SUCCESS;
