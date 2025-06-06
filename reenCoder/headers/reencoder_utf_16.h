@@ -94,9 +94,7 @@ unsigned int _reencoder_utf16_seq_is_valid(const uint16_t* string, size_t length
 /**
  * @brief Converts a UTF-16 string represented in uint8_t to standardised uint16_t.
  *
- * If an odd number of bytes is provided, the function will promote the last byte to a full code unit.
- * The byte will be treated as the "low" byte, i.e. the last byte in the uint16_t buffer will be 0x00XX.
- * Be mindful that this may (probably will) produce an invalid UTF-16 string, so be sure to check the validity of the string afterwards.
+ * If an odd number of bytes is provided, the function will change the last code point to a replacement character (U+FFFD).
  *
  * @param[out] dest Output UTF-16 string buffer.
  * @param[in] src Input UTF-16 string. Need not be null-terminated since 0x00 is valid in UTF-16 when represented in 1 byte sequences.

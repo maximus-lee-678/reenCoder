@@ -83,9 +83,7 @@ unsigned int _reencoder_utf32_seq_is_valid(const uint32_t* string, size_t length
 /**
  * @brief Converts a UTF-32 string represented in uint8_t to standardised uint32_t.
  *
- * If number of bytes is not a multiple of 4, the function will promote the last 1-3 bytes to a full code unit.
- * Bytes will be treated as "low" bytes, e.g. 3 bytes in the uint32_t buffer will be 0x00XXYYZZ.
- * Be mindful that this may (probably will) produce an invalid UTF-32 string, so be sure to check the validity of the string afterwards.
+ * If number of bytes is not a multiple of 4, the function will change the last code point to a replacement character (U+FFFD).
  *
  * @param[out] dest Output UTF-32 string buffer.
  * @param[in] src Input UTF-32 string. Need not be null-terminated since 0x00 is valid in UTF-32 when represented in 1 byte sequences.

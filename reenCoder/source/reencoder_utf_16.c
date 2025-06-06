@@ -147,7 +147,6 @@ unsigned int _reencoder_utf16_seq_is_valid(const uint16_t* string, size_t length
 		unsigned int units_actual = 0;
 
 		unsigned int return_code = _reencoder_utf16_buffer_idx0_is_valid(string + i, length - i, &units_actual);
-		printf("UTF-16 validity check at index %zu: %u (%04x)\n", i, return_code, string[i]); // Debugging output
 		if (return_code != REENCODER_UTF16_VALID) {
 			return return_code;
 		}

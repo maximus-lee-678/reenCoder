@@ -80,7 +80,7 @@ ReencoderUnicodeStruct* reencoder_utf32_parse_uint8(
 		ReencoderUnicodeStruct* struct_utf32_str = _reencoder_unicode_struct_express_populate(
 			reencoder_is_system_little_endian() ? UTF_32LE : UTF_32BE,
 			(const void*)string_uint32,
-			bytes,
+			bytes_adjusted,
 			REENCODER_UTF32_ERR_ODD_LENGTH,
 			0
 		);
@@ -163,21 +163,9 @@ void _reencoder_utf32_uint32_from_uint8(uint32_t* dest, const uint8_t* src, size
 		}
 	}
 
-	// if bytes<4, promote the lone byte to the last code unit with msb padding
+	// if bytes<4, change last unit to replacement character
 	if (extra_bytes) {
-		uint32_t last_unit = 0x00000000;
-
-		if (extra_bytes == 1) {
-			last_unit = (uint32_t)src[bytes - 1];
-		}
-		else if (extra_bytes == 2) {
-			last_unit = ((uint32_t)src[bytes - 2]) | ((uint32_t)src[bytes - 1] << 8);
-		}
-		else if (extra_bytes == 3) {
-			last_unit = ((uint32_t)src[bytes - 3]) | ((uint32_t)src[bytes - 2] << 8) | ((uint32_t)src[bytes - 1] << 16);
-		}
-
-		dest[code_units - 1] = last_unit;
+		dest[code_units - 1] = _REENCODER_UTF32_REPLACEMENT_CHARACTER;
 	}
 
 	dest[code_units] = 0x00000000;
