@@ -240,6 +240,86 @@ unsigned int reencoder_repair_struct(ReencoderUnicodeStruct* unicode_struct) {
 	return REENCODER_REPAIR_SUCCESS;
 }
 
+size_t reencoder_write_to_buffer(ReencoderUnicodeStruct* unicode_struct, uint8_t* target_buffer, unsigned int write_bom) {
+	if (target_buffer == NULL || unicode_struct == NULL || unicode_struct->string_buffer == NULL) {
+		return 0;
+
+	}
+	size_t offset_bytes = 0;
+	if (write_bom) {
+		switch (unicode_struct->string_type) {
+		case UTF_8:
+			offset_bytes = sizeof(_REENCODER_UTF8_BOM);
+			memcpy(target_buffer, _REENCODER_UTF8_BOM, offset_bytes);
+			break;
+		case UTF_16BE:
+			offset_bytes = sizeof(_REENCODER_UTF16_BOM_BE);
+			memcpy(target_buffer, _REENCODER_UTF16_BOM_BE, offset_bytes);
+			break;
+		case UTF_16LE:
+			offset_bytes = sizeof(_REENCODER_UTF16_BOM_LE);
+			memcpy(target_buffer, _REENCODER_UTF16_BOM_LE, offset_bytes);
+			break;
+		case UTF_32BE:
+			offset_bytes = sizeof(_REENCODER_UTF32_BOM_BE);
+			memcpy(target_buffer, _REENCODER_UTF32_BOM_BE, offset_bytes);
+			break;
+		case UTF_32LE:
+			offset_bytes = sizeof(_REENCODER_UTF32_BOM_LE);
+			memcpy(target_buffer, _REENCODER_UTF32_BOM_LE, offset_bytes);
+			break;
+		}
+	}
+
+	memcpy(target_buffer + offset_bytes, unicode_struct->string_buffer, unicode_struct->num_bytes);
+
+	return offset_bytes + unicode_struct->num_bytes;
+}
+
+size_t reencoder_write_to_file(ReencoderUnicodeStruct* unicode_struct, FILE* fp_write_binary, unsigned int write_bom) {
+	if (fp_write_binary == NULL || unicode_struct == NULL || unicode_struct->string_buffer == NULL) {
+		return 0;
+	}
+
+	size_t offset_bytes = 0;
+	size_t num_bytes_written_bom = 0;
+	if (write_bom) {
+		switch (unicode_struct->string_type) {
+		case UTF_8:
+			offset_bytes = sizeof(_REENCODER_UTF8_BOM);
+			num_bytes_written_bom = fwrite(_REENCODER_UTF8_BOM, sizeof(uint8_t), offset_bytes, fp_write_binary);
+			break;
+		case UTF_16BE:
+			offset_bytes = sizeof(_REENCODER_UTF16_BOM_BE);
+			num_bytes_written_bom = fwrite(_REENCODER_UTF16_BOM_BE, sizeof(uint8_t), offset_bytes, fp_write_binary);
+			break;
+		case UTF_16LE:
+			offset_bytes = sizeof(_REENCODER_UTF16_BOM_LE);
+			num_bytes_written_bom = fwrite(_REENCODER_UTF16_BOM_LE, sizeof(uint8_t), offset_bytes, fp_write_binary);
+			break;
+		case UTF_32BE:
+			offset_bytes = sizeof(_REENCODER_UTF32_BOM_BE);
+			num_bytes_written_bom = fwrite(_REENCODER_UTF32_BOM_BE, sizeof(uint8_t), offset_bytes, fp_write_binary);
+			break;
+		case UTF_32LE:
+			offset_bytes = sizeof(_REENCODER_UTF32_BOM_LE);
+			num_bytes_written_bom = fwrite(_REENCODER_UTF32_BOM_LE, sizeof(uint8_t), offset_bytes, fp_write_binary);
+			break;
+		}
+	}
+	if (num_bytes_written_bom != offset_bytes) {
+		return 0; // failed to write BOM
+	}
+
+	size_t num_bytes_written = 0;
+	num_bytes_written = fwrite(unicode_struct->string_buffer, sizeof(uint8_t), unicode_struct->num_bytes, fp_write_binary);
+	if (num_bytes_written != unicode_struct->num_bytes) {
+		return 0; // failed to write string buffer
+	}
+
+	return num_bytes_written_bom + num_bytes_written;
+}
+
 uint8_t reencoder_is_system_little_endian() {
 	// BE: 0x0102 -> 0x01 0x02
 	// LE: 0x0102 -> 0x02 0x01

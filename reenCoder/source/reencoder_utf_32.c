@@ -1,7 +1,5 @@
 #include "../headers/reencoder_utf_32.h"
 
-#define _REENCODER_UTF32_REPLACEMENT_CHARACTER 0x0000FFFD
-
 /**
  * @brief Checks a single UTF-32 code unit for validity.
  *

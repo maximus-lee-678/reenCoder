@@ -1,10 +1,5 @@
 #include "../headers/reencoder_utf_8.h"
 
-#define _REENCODER_UTF8_VALIDATION_HAS_VALID_LENGTH 0
-#define _REENCODER_UTF8_VALIDATION_HAS_VALID_CONTINUATION_BYTES 0
-
-static const uint8_t _REENCODER_UTF8_REPLACEMENT_CHARACTER[] = { 0xEF, 0xBF, 0xBD };
-
 /**
  * @brief Checks a single UTF-8 character for validity. A UTF-8 character is defined as a sequence of 1-4 code unit.
  *

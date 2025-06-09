@@ -1,7 +1,5 @@
 #include "../headers/reencoder_utf_16.h"
 
-#define _REENCODER_UTF16_REPLACEMENT_CHARACTER 0xFFFD
-
 /**
  * @brief Checks a single UTF-16 code unit for validity.
  *

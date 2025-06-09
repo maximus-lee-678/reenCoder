@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdio.h> // for FILE*
 #include <string.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -103,6 +104,20 @@ static const char* _REENCODER_UTF32_OUTCOME_ARR[] = {
 #define REENCODER_CONVERT_FAILURE_NULL_ARGS 201
 #define REENCODER_CONVERT_FAILURE_OOM 202
 
+#define _REENCODER_UTF8_VALIDATION_HAS_VALID_LENGTH 0
+#define _REENCODER_UTF8_VALIDATION_HAS_VALID_CONTINUATION_BYTES 0
+
+static const uint8_t _REENCODER_UTF8_REPLACEMENT_CHARACTER[] = { 0xEF, 0xBF, 0xBD };
+static const uint8_t _REENCODER_UTF8_BOM[] = { 0xEF, 0xBB, 0xBF };
+
+#define _REENCODER_UTF16_REPLACEMENT_CHARACTER 0xFFFD
+static const uint8_t _REENCODER_UTF16_BOM_BE[] = { 0xFE, 0xFF };
+static const uint8_t _REENCODER_UTF16_BOM_LE[] = { 0xFF, 0xFE };
+
+#define _REENCODER_UTF32_REPLACEMENT_CHARACTER 0x0000FFFD
+static const uint8_t _REENCODER_UTF32_BOM_BE[] = { 0x00, 0x00, 0xFE, 0xFF };
+static const uint8_t _REENCODER_UTF32_BOM_LE[] = { 0xFF, 0xFE, 0x00, 0x00 };
+
 #define _REENCODER_UNICODE_REPLACEMENT_CHARACTER 0xFFFD
 
 /**
@@ -152,7 +167,7 @@ const char* reencoder_outcome_as_str(unsigned int outcome, enum ReencoderEncodeT
  *
  * @return Pointer to a `ReencoderUnicodeStruct` containing data for a string encoded in provided target encoding type.
  * @retval Pointer to a `ReencoderUnicodeStruct` containing data for a string encoded in provided source encoding type if the provided string is invalid.
- * @retval NULL If memory allocation fails or an invalid `target_endian` is provided.
+ * @retval NULL If memory allocation fails or an invalid `source_encoding` or `target_encoding` is provided.
  */
 ReencoderUnicodeStruct* reencoder_convert(enum ReencoderEncodeType source_encoding, enum ReencoderEncodeType target_encoding, const void* source_uint_buffer);
 
@@ -169,6 +184,34 @@ ReencoderUnicodeStruct* reencoder_convert(enum ReencoderEncodeType source_encodi
  * @retval REENCODER_REPAIR_FAILURE_OOM if memory allocation fails during the repair process.
  */
 unsigned int reencoder_repair_struct(ReencoderUnicodeStruct* unicode_struct);
+
+/**
+ * @brief Writes the string contents stored in a `ReencoderUnicodeStruct` to a buffer.
+ *
+ * Writes the string to the provided target_buffer, including a BOM if write_bom is set.
+ * The buffer must be large enough to hold the string and the BOM (if applicable).
+ *
+ * @param[in] unicode_struct Pointer to a `ReencoderUnicodeStruct` containing the string to be written.
+ * @param[out] target_buffer Buffer where the string will be written. Must be large enough to hold the string and BOM.
+ * @param[in] write_bom Whether to prefix the written content with a BOM.
+ *
+ * @return Number of bytes written to the target_buffer, including BOM if applicable.
+ */
+size_t reencoder_write_to_buffer(ReencoderUnicodeStruct* unicode_struct, uint8_t* target_buffer, unsigned int write_bom);
+
+/**
+ * @brief Writes the string contents stored in a `ReencoderUnicodeStruct` to a file.
+ *
+ * Writes the string to the provided file pointer, including a BOM if write_bom is set.
+ * The file must be opened in write binary (wb) or append binary (ab) mode.
+ *
+ * @param[in] unicode_struct Pointer to a `ReencoderUnicodeStruct` containing the string to be written.
+ * @param[in] file_pointer File pointer where the string will be written. Must be opened in binary mode.
+ * @param[in] write_bom Whether to prefix the written content with a BOM.
+ *
+ * @return Number of bytes written to the file, including BOM if applicable.
+ */
+size_t reencoder_write_to_file(ReencoderUnicodeStruct* unicode_struct, FILE* file_pointer, unsigned int write_bom);
 
 /**
  * @brief Determines if the system is little-endian.
