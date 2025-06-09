@@ -229,7 +229,7 @@ unsigned int _reencoder_utf8_encode_from_code_point(uint8_t* buffer, size_t inde
 	// https://en.wikipedia.org/wiki/UTF-8#Description
 
 	if (!_reencoder_code_point_is_valid(code_point)) {
-		memcpy(&buffer[index], _REENCODER_UTF8_REPLACEMENT_CHARACTER, sizeof(_REENCODER_UTF8_REPLACEMENT_CHARACTER));
+		memcpy(buffer + index, _REENCODER_UTF8_REPLACEMENT_CHARACTER, sizeof(_REENCODER_UTF8_REPLACEMENT_CHARACTER));
 		return sizeof(_REENCODER_UTF8_REPLACEMENT_CHARACTER);
 	}
 
@@ -261,7 +261,7 @@ unsigned int _reencoder_utf8_encode_from_code_point(uint8_t* buffer, size_t inde
 	}
 	else {
 		// (INVALID) units written was 0 somehow
-		memcpy(&buffer[index], _REENCODER_UTF8_REPLACEMENT_CHARACTER, sizeof(_REENCODER_UTF8_REPLACEMENT_CHARACTER));
+		memcpy(buffer + index, _REENCODER_UTF8_REPLACEMENT_CHARACTER, sizeof(_REENCODER_UTF8_REPLACEMENT_CHARACTER));
 		return sizeof(_REENCODER_UTF8_REPLACEMENT_CHARACTER);
 	}
 }

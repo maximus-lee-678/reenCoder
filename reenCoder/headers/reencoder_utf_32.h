@@ -41,9 +41,7 @@ ReencoderUnicodeStruct* reencoder_utf32_parse_uint32(const uint32_t* string, enu
  * @return Pointer to a `ReencoderUnicodeStruct` containing parsed string data.
  * @retval NULL If memory allocation fails or an invalid `target_endian` is provided.
  */
-ReencoderUnicodeStruct* reencoder_utf32_parse_uint8(
-	const uint8_t* string, size_t bytes, enum ReencoderEncodeType source_endian, enum ReencoderEncodeType target_endian
-);
+ReencoderUnicodeStruct* reencoder_utf32_parse_uint8(const uint8_t* string, size_t bytes, enum ReencoderEncodeType source_endian, enum ReencoderEncodeType target_endian);
 
 /**
  * @brief Returns the length of a UTF-32 string.
@@ -115,7 +113,6 @@ uint32_t _reencoder_utf32_decode_to_code_point(const uint32_t* ptr, unsigned int
  * @return Unsigned integer representing the unit count (no. of 4 byte units) written to the buffer.
  */
 unsigned int _reencoder_utf32_encode_from_code_point(uint32_t* buffer, size_t index, uint32_t code_point);
-
 
 /**
  * @brief Writes a UTF-32 uint32_t string to a buffer with swapped endianness.

@@ -19,31 +19,21 @@ const char* reencoder_encode_type_as_str(unsigned int encode_type) {
 	return _REENCODER_ENCODE_TYPE_ARR[encode_type];
 }
 
-const char* reencoder_outcome_as_str(unsigned int outcome, enum ReencoderEncodeType error_for_string_type) {
-	if (error_for_string_type < 0 || error_for_string_type >= sizeof(_REENCODER_ENCODE_TYPE_ARR)) {
-		return NULL;
+const char* reencoder_outcome_as_str(unsigned int outcome) {
+	unsigned int outcome_offset = 0;
+
+	outcome_offset = outcome - _REENCODER_UTF8_PARSE_OFFSET;
+	if (outcome_offset <= (sizeof(_REENCODER_UTF8_OUTCOME_ARR) / sizeof(_REENCODER_UTF8_OUTCOME_ARR[0]))) {
+		return _REENCODER_UTF8_OUTCOME_ARR[outcome_offset];;
 	}
 
-	unsigned int outcome_offset = 0;
-	if (error_for_string_type == UTF_8) {
-		outcome_offset = outcome - _REENCODER_UTF8_PARSE_OFFSET;
-		if (outcome_offset >= (sizeof(_REENCODER_UTF8_OUTCOME_ARR) / sizeof(_REENCODER_UTF8_OUTCOME_ARR[0]))) {
-			return NULL;
-		}
-		return _REENCODER_UTF8_OUTCOME_ARR[outcome_offset];
-	}
-	else if (error_for_string_type == UTF_16LE || error_for_string_type == UTF_16BE) {
-		outcome_offset = outcome - _REENCODER_UTF16_PARSE_OFFSET;
-		if (outcome_offset >= (sizeof(_REENCODER_UTF16_OUTCOME_ARR) / sizeof(_REENCODER_UTF16_OUTCOME_ARR[0]))) {
-			return NULL;
-		}
+	outcome_offset = outcome - _REENCODER_UTF16_PARSE_OFFSET;
+	if (outcome_offset <= (sizeof(_REENCODER_UTF16_OUTCOME_ARR) / sizeof(_REENCODER_UTF16_OUTCOME_ARR[0]))) {
 		return _REENCODER_UTF16_OUTCOME_ARR[outcome_offset];
 	}
-	else if (error_for_string_type == UTF_32LE || error_for_string_type == UTF_32BE) {
-		outcome_offset = outcome - _REENCODER_UTF32_PARSE_OFFSET;
-		if (outcome_offset >= (sizeof(_REENCODER_UTF32_OUTCOME_ARR) / sizeof(_REENCODER_UTF32_OUTCOME_ARR[0]))) {
-			return NULL;
-		}
+
+	outcome_offset = outcome - _REENCODER_UTF32_PARSE_OFFSET;
+	if (outcome_offset <= (sizeof(_REENCODER_UTF32_OUTCOME_ARR) / sizeof(_REENCODER_UTF32_OUTCOME_ARR[0]))) {
 		return _REENCODER_UTF32_OUTCOME_ARR[outcome_offset];
 	}
 
@@ -253,20 +243,20 @@ size_t reencoder_write_to_buffer(ReencoderUnicodeStruct* unicode_struct, uint8_t
 			memcpy(target_buffer, _REENCODER_UTF8_BOM, offset_bytes);
 			break;
 		case UTF_16BE:
-			offset_bytes = sizeof(_REENCODER_UTF16_BOM_BE);
-			memcpy(target_buffer, _REENCODER_UTF16_BOM_BE, offset_bytes);
+			offset_bytes = sizeof(_REENCODER_UTF16BE_BOM);
+			memcpy(target_buffer, _REENCODER_UTF16BE_BOM, offset_bytes);
 			break;
 		case UTF_16LE:
-			offset_bytes = sizeof(_REENCODER_UTF16_BOM_LE);
-			memcpy(target_buffer, _REENCODER_UTF16_BOM_LE, offset_bytes);
+			offset_bytes = sizeof(_REENCODER_UTF16LE_BOM);
+			memcpy(target_buffer, _REENCODER_UTF16LE_BOM, offset_bytes);
 			break;
 		case UTF_32BE:
-			offset_bytes = sizeof(_REENCODER_UTF32_BOM_BE);
-			memcpy(target_buffer, _REENCODER_UTF32_BOM_BE, offset_bytes);
+			offset_bytes = sizeof(_REENCODER_UTF32BE_BOM);
+			memcpy(target_buffer, _REENCODER_UTF32BE_BOM, offset_bytes);
 			break;
 		case UTF_32LE:
-			offset_bytes = sizeof(_REENCODER_UTF32_BOM_LE);
-			memcpy(target_buffer, _REENCODER_UTF32_BOM_LE, offset_bytes);
+			offset_bytes = sizeof(_REENCODER_UTF32LE_BOM);
+			memcpy(target_buffer, _REENCODER_UTF32LE_BOM, offset_bytes);
 			break;
 		}
 	}
@@ -290,20 +280,20 @@ size_t reencoder_write_to_file(ReencoderUnicodeStruct* unicode_struct, FILE* fp_
 			num_bytes_written_bom = fwrite(_REENCODER_UTF8_BOM, sizeof(uint8_t), offset_bytes, fp_write_binary);
 			break;
 		case UTF_16BE:
-			offset_bytes = sizeof(_REENCODER_UTF16_BOM_BE);
-			num_bytes_written_bom = fwrite(_REENCODER_UTF16_BOM_BE, sizeof(uint8_t), offset_bytes, fp_write_binary);
+			offset_bytes = sizeof(_REENCODER_UTF16BE_BOM);
+			num_bytes_written_bom = fwrite(_REENCODER_UTF16BE_BOM, sizeof(uint8_t), offset_bytes, fp_write_binary);
 			break;
 		case UTF_16LE:
-			offset_bytes = sizeof(_REENCODER_UTF16_BOM_LE);
-			num_bytes_written_bom = fwrite(_REENCODER_UTF16_BOM_LE, sizeof(uint8_t), offset_bytes, fp_write_binary);
+			offset_bytes = sizeof(_REENCODER_UTF16LE_BOM);
+			num_bytes_written_bom = fwrite(_REENCODER_UTF16LE_BOM, sizeof(uint8_t), offset_bytes, fp_write_binary);
 			break;
 		case UTF_32BE:
-			offset_bytes = sizeof(_REENCODER_UTF32_BOM_BE);
-			num_bytes_written_bom = fwrite(_REENCODER_UTF32_BOM_BE, sizeof(uint8_t), offset_bytes, fp_write_binary);
+			offset_bytes = sizeof(_REENCODER_UTF32BE_BOM);
+			num_bytes_written_bom = fwrite(_REENCODER_UTF32BE_BOM, sizeof(uint8_t), offset_bytes, fp_write_binary);
 			break;
 		case UTF_32LE:
-			offset_bytes = sizeof(_REENCODER_UTF32_BOM_LE);
-			num_bytes_written_bom = fwrite(_REENCODER_UTF32_BOM_LE, sizeof(uint8_t), offset_bytes, fp_write_binary);
+			offset_bytes = sizeof(_REENCODER_UTF32LE_BOM);
+			num_bytes_written_bom = fwrite(_REENCODER_UTF32LE_BOM, sizeof(uint8_t), offset_bytes, fp_write_binary);
 			break;
 		}
 	}

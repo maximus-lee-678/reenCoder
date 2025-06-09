@@ -111,12 +111,12 @@ static const uint8_t _REENCODER_UTF8_REPLACEMENT_CHARACTER[] = { 0xEF, 0xBF, 0xB
 static const uint8_t _REENCODER_UTF8_BOM[] = { 0xEF, 0xBB, 0xBF };
 
 #define _REENCODER_UTF16_REPLACEMENT_CHARACTER 0xFFFD
-static const uint8_t _REENCODER_UTF16_BOM_BE[] = { 0xFE, 0xFF };
-static const uint8_t _REENCODER_UTF16_BOM_LE[] = { 0xFF, 0xFE };
+static const uint8_t _REENCODER_UTF16BE_BOM[] = { 0xFE, 0xFF };
+static const uint8_t _REENCODER_UTF16LE_BOM[] = { 0xFF, 0xFE };
 
 #define _REENCODER_UTF32_REPLACEMENT_CHARACTER 0x0000FFFD
-static const uint8_t _REENCODER_UTF32_BOM_BE[] = { 0x00, 0x00, 0xFE, 0xFF };
-static const uint8_t _REENCODER_UTF32_BOM_LE[] = { 0xFF, 0xFE, 0x00, 0x00 };
+static const uint8_t _REENCODER_UTF32BE_BOM[] = { 0x00, 0x00, 0xFE, 0xFF };
+static const uint8_t _REENCODER_UTF32LE_BOM[] = { 0xFF, 0xFE, 0x00, 0x00 };
 
 #define _REENCODER_UNICODE_REPLACEMENT_CHARACTER 0xFFFD
 
@@ -143,13 +143,11 @@ const char* reencoder_encode_type_as_str(unsigned int encode_type);
  * @brief Returns a human-readable string for a given parse outcome code.
  *
  * @param[in] outcome Unsigned integer found at `ReencoderUnicodeStruct->string_validity`.
- * @param[in] error_for_string_type The type of the string that was parsed. Must be one of the `ReencoderEncodeType` enum values.
  *
  * @return String representation of the outcome.
- * @retval NULL If provided outcome is out of bounds.
- * @retval NULL If an invalid enum is provided for error_for_string_type.
+ * @retval NULL If provided outcome is invalid.
  */
-const char* reencoder_outcome_as_str(unsigned int outcome, enum ReencoderEncodeType error_for_string_type);
+const char* reencoder_outcome_as_str(unsigned int outcome);
 
 /**
  * @brief Parses a given UTF sequence and converts it to a UTF sequence of different encoding before loading it into a `ReencoderUnicodeStruct`.
@@ -204,6 +202,7 @@ size_t reencoder_write_to_buffer(ReencoderUnicodeStruct* unicode_struct, uint8_t
  *
  * Writes the string to the provided file pointer, including a BOM if write_bom is set.
  * The file must be opened in write binary (wb) or append binary (ab) mode.
+ * Note: UTF-8/UTF-16LE/UTF-16BE are supported by most (?) test editors like notepad/vsc, but UTF-32LE/UTF-32BE aren't.
  *
  * @param[in] unicode_struct Pointer to a `ReencoderUnicodeStruct` containing the string to be written.
  * @param[in] file_pointer File pointer where the string will be written. Must be opened in binary mode.
@@ -216,7 +215,9 @@ size_t reencoder_write_to_file(ReencoderUnicodeStruct* unicode_struct, FILE* fil
 /**
  * @brief Determines if the system is little-endian.
  *
- * Intended for internal use by reencoder_utf_* functions.
+ * Can be used to determine the endianness of the system when dealing with UTF-16 and UTF-32 conversions.
+ * Example: reencoder_convert(reencoder_is_system_little_endian() ? UTF_16LE : UTF_16BE, UTF_8, uint16_input);
+ * Also for internal use by reencoder_utf_* functions.
  *
  * @return 1 if the system is little-endian, 0 if the system is big-endian.
  */
