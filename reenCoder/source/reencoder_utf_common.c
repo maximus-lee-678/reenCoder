@@ -16,13 +16,34 @@ ReencoderUnicodeStruct* reencoder_unicode_struct_duplicate(ReencoderUnicodeStruc
 		return NULL;
 	}
 
-	return _reencoder_unicode_struct_express_populate(
-		unicode_struct->string_type,
-		unicode_struct->string_buffer,
-		unicode_struct->num_bytes,
-		unicode_struct->string_validity,
-		unicode_struct->num_chars
-	);
+	// cannot use _reencoder_unicode_struct_express_populate, since that expects a uint16_t/uint32_t input for UTF-16/32
+	ReencoderUnicodeStruct* new_unicode_struct = _reencoder_unicode_struct_init(unicode_struct->string_type);
+	if (new_unicode_struct == NULL) {
+		return NULL;
+	}
+	// accomodate for null-terminator of different sizes
+	size_t null_terminator_size = 0;
+	if (unicode_struct->string_type == UTF_8) {
+		null_terminator_size = sizeof(uint8_t);
+	}
+	else if (unicode_struct->string_type == UTF_16BE || unicode_struct->string_type == UTF_16LE) {
+		null_terminator_size = sizeof(uint16_t);
+	}
+	else if (unicode_struct->string_type == UTF_32BE || unicode_struct->string_type == UTF_32LE) {
+		null_terminator_size = sizeof(uint32_t);
+	}
+	new_unicode_struct->string_buffer = malloc(unicode_struct->num_bytes + null_terminator_size);
+	if (new_unicode_struct->string_buffer == NULL) {
+		reencoder_unicode_struct_free(new_unicode_struct);
+		return NULL;
+	}
+
+	memcpy(new_unicode_struct->string_buffer, unicode_struct->string_buffer, unicode_struct->num_bytes + null_terminator_size);
+	new_unicode_struct->num_bytes = unicode_struct->num_bytes;
+	new_unicode_struct->string_validity = unicode_struct->string_validity;
+	new_unicode_struct->num_chars = unicode_struct->num_chars;
+
+	return new_unicode_struct;
 }
 
 const char* reencoder_encode_type_as_str(unsigned int encode_type) {

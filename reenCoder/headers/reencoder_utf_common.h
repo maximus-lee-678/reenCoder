@@ -131,13 +131,13 @@ void reencoder_unicode_struct_free(ReencoderUnicodeStruct* unicode_struct);
 
 /**
  * @brief Creates a copy of an existing `ReencoderUnicodeStruct`.
- * 
+ *
  * The returned `ReencoderUnicodeStruct` must be freed using `reencoder_unicode_struct_free()` once it is no longer needed.
  *
  * @param[in] unicode_struct Pointer to the `ReencoderUnicodeStruct` to be duplicated.
  *
  * @return Pointer to a `ReencoderUnicodeStruct` containing the same data as the provided unicode_struct.
- * @retval  NULL If memory allocation fails or a NULL pointer is provided.
+ * @retval NULL If memory allocation fails or a NULL pointer is provided.
  */
 ReencoderUnicodeStruct* reencoder_unicode_struct_duplicate(ReencoderUnicodeStruct* unicode_struct);
 
@@ -324,7 +324,7 @@ void* _reencoder_grow_buffer_dynamic(enum ReencoderEncodeType string_type, void*
  * @param[in,out] output_buffer_size Pointer to the size of the output buffer. Should be initialised to 0 and is updated during conversion.
  * @param[in] source_buffer Pointer to the source string buffer.
  * @param[out] output_buffer Pointer to a pointer that will hold the address of the output buffer after conversion. Should be initialised to NULL.
- * 
+ *
  * @return REENCODER_CONVERT_SUCCESS if the conversion was successful.
  * @retval REENCODER_CONVERT_FAILURE_NULL_ARGS if any of the required pointers are NULL.
  * @retval REENCODER_CONVERT_FAILURE_OOM if memory allocation fails during the conversion process.
