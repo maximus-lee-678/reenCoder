@@ -48,6 +48,7 @@ static ReencoderUnicodeStruct _reencoder_test_struct_utf_8_valid_long_sequence =
 	.num_chars = 1592,
 	.string_buffer = (uint8_t*)_reencoder_test_string_utf_8_valid_long_sequence
 };
+#define _REENCODER_TEST_NUM_BYTES_UTF_8_VALID_LONG_SEQUENCE 1592 // for use in declaring stack buffer size during testing
 
 static ReencoderUnicodeStruct _reencoder_test_struct_utf_8_invalid_lead = {
 	.string_type = UTF_8,
@@ -145,26 +146,37 @@ void _reencoder_test_invalid_utf_8_from_utf_32(void** state);
 // Repairs
 void _reencoder_test_fix_utf_8(void** state);
 
+// Write-outs
+void _reencoder_test_write_utf_8_w_bom_to_buffer(void** state);
+void _reencoder_test_write_utf_8_wo_bom_to_buffer(void** state);
+void _reencoder_test_write_utf_8_w_bom_to_file(void** state);
+void _reencoder_test_write_utf_8_wo_bom_to_file(void** state);
+
 static struct CMUnitTest __reencoder_utf_8_test_array[] = {
 	// UTF-8 uint8_t
-	cmocka_unit_test_teardown(_reencoder_test_valid_utf_8_valid_1_byte, _reencoder_test_teardown_buffer),
-	cmocka_unit_test_teardown(_reencoder_test_valid_utf_8_valid_2_byte, _reencoder_test_teardown_buffer),
-	cmocka_unit_test_teardown(_reencoder_test_valid_utf_8_valid_3_byte, _reencoder_test_teardown_buffer),
-	cmocka_unit_test_teardown(_reencoder_test_valid_utf_8_valid_4_byte, _reencoder_test_teardown_buffer),
-	cmocka_unit_test_teardown(_reencoder_test_valid_utf_8_valid_long_sequence, _reencoder_test_teardown_buffer),
-	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_invalid_lead, _reencoder_test_teardown_buffer),
-	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_truncated, _reencoder_test_teardown_buffer),
-	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_invalid_cont, _reencoder_test_teardown_buffer),
-	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_overlong_2, _reencoder_test_teardown_buffer),
-	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_overlong_3, _reencoder_test_teardown_buffer),
-	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_overlong_4, _reencoder_test_teardown_buffer),
-	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_surrogate_pair, _reencoder_test_teardown_buffer),
-	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_out_of_range, _reencoder_test_teardown_buffer),
+	cmocka_unit_test_teardown(_reencoder_test_valid_utf_8_valid_1_byte, _reencoder_test_teardown_struct),
+	cmocka_unit_test_teardown(_reencoder_test_valid_utf_8_valid_2_byte, _reencoder_test_teardown_struct),
+	cmocka_unit_test_teardown(_reencoder_test_valid_utf_8_valid_3_byte, _reencoder_test_teardown_struct),
+	cmocka_unit_test_teardown(_reencoder_test_valid_utf_8_valid_4_byte, _reencoder_test_teardown_struct),
+	cmocka_unit_test_teardown(_reencoder_test_valid_utf_8_valid_long_sequence, _reencoder_test_teardown_struct),
+	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_invalid_lead, _reencoder_test_teardown_struct),
+	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_truncated, _reencoder_test_teardown_struct),
+	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_invalid_cont, _reencoder_test_teardown_struct),
+	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_overlong_2, _reencoder_test_teardown_struct),
+	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_overlong_3, _reencoder_test_teardown_struct),
+	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_overlong_4, _reencoder_test_teardown_struct),
+	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_surrogate_pair, _reencoder_test_teardown_struct),
+	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_out_of_range, _reencoder_test_teardown_struct),
 	// Other encodings to UTF-8
-	cmocka_unit_test_teardown(_reencoder_test_valid_utf_8_from_utf_16, _reencoder_test_teardown_buffer),
-	cmocka_unit_test_teardown(_reencoder_test_valid_utf_8_from_utf_32, _reencoder_test_teardown_buffer),
-	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_from_utf_16, _reencoder_test_teardown_buffer),
-	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_from_utf_32, _reencoder_test_teardown_buffer),
+	cmocka_unit_test_teardown(_reencoder_test_valid_utf_8_from_utf_16, _reencoder_test_teardown_struct),
+	cmocka_unit_test_teardown(_reencoder_test_valid_utf_8_from_utf_32, _reencoder_test_teardown_struct),
+	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_from_utf_16, _reencoder_test_teardown_struct),
+	cmocka_unit_test_teardown(_reencoder_test_invalid_utf_8_from_utf_32, _reencoder_test_teardown_struct),
 	// Repairs
-	cmocka_unit_test_teardown(_reencoder_test_fix_utf_8, _reencoder_test_teardown_buffer)
+	cmocka_unit_test_teardown(_reencoder_test_fix_utf_8, _reencoder_test_teardown_struct),
+	// Write-outs
+	cmocka_unit_test(_reencoder_test_write_utf_8_w_bom_to_buffer),
+	cmocka_unit_test(_reencoder_test_write_utf_8_wo_bom_to_buffer),
+	cmocka_unit_test(_reencoder_test_write_utf_8_w_bom_to_file),
+	cmocka_unit_test(_reencoder_test_write_utf_8_wo_bom_to_file)
 };

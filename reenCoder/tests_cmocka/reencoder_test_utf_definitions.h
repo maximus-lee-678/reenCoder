@@ -7,7 +7,14 @@
 #include <cmocka.h>
 #include "../headers/reencoder_utf_common.h"
 
-static int _reencoder_test_teardown_buffer(void** state) {
+#define _REENCODER_TEST_FAIL_NO_BUFFER_MEMORY 0
+#define _REENCODER_TEST_FAIL_TEMP_FILE 1
+static const char* _REENCODER_TEST_FAIL_STRINGS[] = {
+	"Failed to allocate memory for buffer.",
+	"Failed to create temporary file."
+};
+
+static int _reencoder_test_teardown_struct(void** state) {
 	ReencoderUnicodeStruct* s = *state;
 	if (s) {
 		free(s->string_buffer);
@@ -24,6 +31,79 @@ static void _reencoder_test_struct_equal(ReencoderUnicodeStruct* expected, Reenc
 	assert_int_equal(expected->num_bytes, actual->num_bytes);
 	assert_int_equal(expected->num_chars, actual->num_chars);
 	assert_memory_equal(expected->string_buffer, actual->string_buffer, expected->num_bytes);
+}
+
+static void _reencoder_get_bom_details(enum ReencoderEncodeType string_type, unsigned int* bom_size, const uint8_t** bom_used) {
+	switch (string_type) {
+	case UTF_8:
+		*bom_used = _REENCODER_UTF8_BOM;
+		*bom_size = sizeof(_REENCODER_UTF8_BOM);
+		break;
+	case UTF_16BE:
+		*bom_used = _REENCODER_UTF16BE_BOM;
+		*bom_size = sizeof(_REENCODER_UTF16BE_BOM);
+		break;
+	case UTF_16LE:
+		*bom_used = _REENCODER_UTF16LE_BOM;
+		*bom_size = sizeof(_REENCODER_UTF16LE_BOM);
+		break;
+	case UTF_32BE:
+		*bom_used = _REENCODER_UTF32BE_BOM;
+		*bom_size = sizeof(_REENCODER_UTF32BE_BOM);
+		break;
+	case UTF_32LE:
+		*bom_used = _REENCODER_UTF32LE_BOM;
+		*bom_size = sizeof(_REENCODER_UTF32LE_BOM);
+		break;
+	}
+}
+
+static void _reencoder_test_buffer_equal(ReencoderUnicodeStruct* struct_origin, uint8_t* write_buffer, size_t bytes_written, unsigned int is_bom_written) {
+	unsigned int bom_size = 0;
+	const uint8_t* bom_used = NULL;
+	if (is_bom_written) {
+		_reencoder_get_bom_details(struct_origin->string_type, &bom_size, &bom_used);
+	}
+
+	assert_int_equal(bytes_written, struct_origin->num_bytes + bom_size);
+
+	if (is_bom_written) {
+		assert_memory_equal(write_buffer, bom_used, bom_size); // test BOM
+		assert_memory_equal(write_buffer + bom_size, struct_origin->string_buffer, struct_origin->num_bytes - bom_size); // test rest of string
+	}
+	else {
+		assert_memory_equal(write_buffer, struct_origin->string_buffer, struct_origin->num_bytes); // test whole string
+	}
+}
+
+static void _reencoder_test_file_equal(ReencoderUnicodeStruct* struct_origin, FILE* fp, size_t bytes_written, unsigned int is_bom_written) {
+	unsigned int bom_size = 0;
+	const uint8_t* bom_used = NULL;
+	uint8_t* buffer_file_contents = NULL;
+	if (is_bom_written) {
+		_reencoder_get_bom_details(struct_origin->string_type, &bom_size, &bom_used);
+	}
+
+	assert_int_equal(bytes_written, struct_origin->num_bytes + bom_size);
+
+	// copy file contents to a buffer
+	buffer_file_contents = (char*)malloc(bytes_written + sizeof(uint8_t));
+	if (buffer_file_contents == NULL) {
+		fail_msg("%s", _REENCODER_TEST_FAIL_STRINGS[_REENCODER_TEST_FAIL_NO_BUFFER_MEMORY]);
+	}
+	rewind(fp); // rewind file pointer to the beginning in case it was not at the start
+	fread(buffer_file_contents, 1, bytes_written, fp);
+	buffer_file_contents[bytes_written] = '\0';
+
+	if (is_bom_written) {
+		assert_memory_equal(buffer_file_contents, bom_used, bom_size); // test BOM
+		assert_memory_equal(buffer_file_contents + bom_size, struct_origin->string_buffer, struct_origin->num_bytes - bom_size); // test rest of string
+	}
+	else {
+		assert_memory_equal(buffer_file_contents, struct_origin->string_buffer, struct_origin->num_bytes); // test whole string
+	}
+
+	free(buffer_file_contents);
 }
 
 // [UTF-8]
