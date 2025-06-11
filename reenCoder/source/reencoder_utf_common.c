@@ -11,6 +11,20 @@ void reencoder_unicode_struct_free(ReencoderUnicodeStruct* unicode_struct) {
 	free(unicode_struct);
 }
 
+ReencoderUnicodeStruct* reencoder_unicode_struct_duplicate(ReencoderUnicodeStruct* unicode_struct) {
+	if (unicode_struct == NULL) {
+		return NULL;
+	}
+
+	return _reencoder_unicode_struct_express_populate(
+		unicode_struct->string_type,
+		unicode_struct->string_buffer,
+		unicode_struct->num_bytes,
+		unicode_struct->string_validity,
+		unicode_struct->num_chars
+	);
+}
+
 const char* reencoder_encode_type_as_str(unsigned int encode_type) {
 	if (encode_type >= (sizeof(_REENCODER_ENCODE_TYPE_ARR) / sizeof(_REENCODER_ENCODE_TYPE_ARR[0]))) {
 		return NULL;
@@ -23,17 +37,17 @@ const char* reencoder_outcome_as_str(unsigned int outcome) {
 	unsigned int outcome_offset = 0;
 
 	outcome_offset = outcome - _REENCODER_UTF8_PARSE_OFFSET;
-	if (outcome_offset <= (sizeof(_REENCODER_UTF8_OUTCOME_ARR) / sizeof(_REENCODER_UTF8_OUTCOME_ARR[0]))) {
-		return _REENCODER_UTF8_OUTCOME_ARR[outcome_offset];;
+	if (outcome_offset < (sizeof(_REENCODER_UTF8_OUTCOME_ARR) / sizeof(_REENCODER_UTF8_OUTCOME_ARR[0]))) {
+		return _REENCODER_UTF8_OUTCOME_ARR[outcome_offset];
 	}
 
 	outcome_offset = outcome - _REENCODER_UTF16_PARSE_OFFSET;
-	if (outcome_offset <= (sizeof(_REENCODER_UTF16_OUTCOME_ARR) / sizeof(_REENCODER_UTF16_OUTCOME_ARR[0]))) {
+	if (outcome_offset < (sizeof(_REENCODER_UTF16_OUTCOME_ARR) / sizeof(_REENCODER_UTF16_OUTCOME_ARR[0]))) {
 		return _REENCODER_UTF16_OUTCOME_ARR[outcome_offset];
 	}
 
 	outcome_offset = outcome - _REENCODER_UTF32_PARSE_OFFSET;
-	if (outcome_offset <= (sizeof(_REENCODER_UTF32_OUTCOME_ARR) / sizeof(_REENCODER_UTF32_OUTCOME_ARR[0]))) {
+	if (outcome_offset < (sizeof(_REENCODER_UTF32_OUTCOME_ARR) / sizeof(_REENCODER_UTF32_OUTCOME_ARR[0]))) {
 		return _REENCODER_UTF32_OUTCOME_ARR[outcome_offset];
 	}
 

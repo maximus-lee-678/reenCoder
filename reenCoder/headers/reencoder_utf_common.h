@@ -130,6 +130,18 @@ static const uint8_t _REENCODER_UTF32LE_BOM[] = { 0xFF, 0xFE, 0x00, 0x00 };
 void reencoder_unicode_struct_free(ReencoderUnicodeStruct* unicode_struct);
 
 /**
+ * @brief Creates a copy of an existing `ReencoderUnicodeStruct`.
+ * 
+ * The returned `ReencoderUnicodeStruct` must be freed using `reencoder_unicode_struct_free()` once it is no longer needed.
+ *
+ * @param[in] unicode_struct Pointer to the `ReencoderUnicodeStruct` to be duplicated.
+ *
+ * @return Pointer to a `ReencoderUnicodeStruct` containing the same data as the provided unicode_struct.
+ * @retval  NULL If memory allocation fails or a NULL pointer is provided.
+ */
+ReencoderUnicodeStruct* reencoder_unicode_struct_duplicate(ReencoderUnicodeStruct* unicode_struct);
+
+/**
  * @brief Returns a human-readable string for a given ReencoderEncodeType.
  *
  * @param[in] Encode enum found at `ReencoderUnicodeStruct->string_type`.
