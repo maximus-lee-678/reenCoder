@@ -1,4 +1,4 @@
-// Shoutout to the mojibake produced by non-ascii strings in C, this one's for you!!
+﻿// Shoutout to ≡ƒç▓ ≡ƒç┤ ≡ƒç» ≡ƒç« ≡ƒçº ≡ƒçª ≡ƒç░ ≡ƒç¬ caused by Windows, this one's just for you!!
 
 #pragma once
 
@@ -7,12 +7,16 @@
 
 /**
  * @brief Express initialisation function that allows running program to work with UTF-8 related console outputs and file interaction.
+ * 
+ * @return void
  */
-void reencoder_init_utf8();
+void _reencoder_locale_init_utf8();
 
 /**
- * @brief Express deinitialisation function that reverts locale and code page changes made by reencoder_set_locale_utf8().
+ * @brief Express deinitialisation function that reverts locale and code page changes made by _reencoder_locale_set_locale_utf8().
  * 
- * Running this without calling reencoder_init_utf8() first will cause no changes to be made to the active code page.
+ * Running this without calling _reencoder_locale_init_utf8() first will cause no changes to be made to the active code page.
+ * 
+ * @return void
  */
-void reencoder_deinit();
+void _reencoder_locale_deinit();
