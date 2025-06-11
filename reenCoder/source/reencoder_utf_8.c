@@ -79,11 +79,8 @@ static inline unsigned int _reencoder_utf8_validity_check_5_is_not_surrogate(uin
 // ##### //
 
 ReencoderUnicodeStruct* reencoder_utf8_parse(const uint8_t* string) {
-	// REENCODER_UTF_8 USER FUNCTION DEFINITION
-
-	// i've heard NULLs should be supported, i.e. don't use strlen
-	// the lowest of low priorities would be to implement length which standardises with utf-16 and utf-32
-	// i'll be back, hopefully
+	// [Use Case] End-user Function
+	// [End-user Function Tested?] Yes
 
 	ReencoderUnicodeStruct* struct_utf8_str = _reencoder_unicode_struct_express_populate(
 		UTF_8, (const void*)string, strlen(string), _reencoder_utf8_seq_is_valid(string), _reencoder_utf8_determine_num_chars(string)
@@ -93,7 +90,8 @@ ReencoderUnicodeStruct* reencoder_utf8_parse(const uint8_t* string) {
 }
 
 unsigned int reencoder_utf8_contains_multibyte(const uint8_t* string) {
-	// REENCODER_UTF_8 USER FUNCTION DEFINITION
+	// [Use Case] End-user Function
+	// [End-user Function Tested?] No
 
 	size_t examined_index = 0;
 	while (string[examined_index] != '\0') {
@@ -112,7 +110,8 @@ unsigned int reencoder_utf8_contains_multibyte(const uint8_t* string) {
 }
 
 size_t _reencoder_utf8_determine_num_chars(const uint8_t* string) {
-	// REENCODER_UTF_8 INTERNAL FUNCTION DEFINITION
+	// [Use Case] Internal Function (Non-static, Extern @ _common)
+	// [End-user Function Tested?] NA
 
 	size_t examined_index = 0;
 	size_t num_utf8_chars = 0;
@@ -130,6 +129,9 @@ size_t _reencoder_utf8_determine_num_chars(const uint8_t* string) {
 }
 
 unsigned int _reencoder_utf8_buffer_idx0_is_valid(const uint8_t* ptr, size_t units_left, unsigned int* units_actual) {
+	// [Use Case] Internal Function (Non-static, Extern @ _common)
+	// [End-user Function Tested?] NA
+
 	unsigned int units_expected = _reencoder_utf8_determine_length_from_first_byte(ptr[0]);
 
 	// segfault moment
@@ -144,8 +146,8 @@ unsigned int _reencoder_utf8_buffer_idx0_is_valid(const uint8_t* ptr, size_t uni
 }
 
 unsigned int _reencoder_utf8_seq_is_valid(const uint8_t* string) {
-	// REENCODER_UTF_8 INTERNAL FUNCTION DEFINITION
-	// ALSO DECLARED AS EXTERN IN reencoder_utf_common.h
+	// [Use Case] Internal Function (Non-static, Extern @ _common)
+	// [End-user Function Tested?] NA
 
 	size_t input_string_len = strlen(string);
 
@@ -164,7 +166,8 @@ unsigned int _reencoder_utf8_seq_is_valid(const uint8_t* string) {
 }
 
 unsigned int _reencoder_utf8_determine_length_from_first_byte(uint8_t first_byte) {
-	// REENCODER_UTF_8 INTERNAL FUNCTION DEFINITION
+	// [Use Case] Internal Function (Non-static ONLY)
+	// [End-user Function Tested?] NA
 
 	if ((first_byte & 0b10000000) == 0b00000000) // 0xxxxxxx ~ 1-byte ASCII
 		return 1;
@@ -179,8 +182,8 @@ unsigned int _reencoder_utf8_determine_length_from_first_byte(uint8_t first_byte
 }
 
 uint32_t _reencoder_utf8_decode_to_code_point(const uint8_t* ptr, unsigned int* units_read) {
-	// REENCODER_UTF_8 INTERNAL FUNCTION DEFINITION
-	// ALSO DECLARED AS EXTERN IN reencoder_utf_common.h
+	// [Use Case] Internal Function (Extern @ _common ONLY)
+	// [End-user Function Tested?] NA
 
 	uint32_t code_point = 0;
 	unsigned int byte_length = _reencoder_utf8_determine_length_from_first_byte(*ptr);
@@ -223,8 +226,8 @@ uint32_t _reencoder_utf8_decode_to_code_point(const uint8_t* ptr, unsigned int* 
 }
 
 unsigned int _reencoder_utf8_encode_from_code_point(uint8_t* buffer, size_t index, uint32_t code_point) {
-	// REENCODER_UTF_8 INTERNAL FUNCTION DEFINITION
-	// ALSO DECLARED AS EXTERN IN reencoder_utf_common.h
+	// [Use Case] Internal Function (Extern @ _common ONLY)
+	// [End-user Function Tested?] NA
 
 	// https://en.wikipedia.org/wiki/UTF-8#Description
 
@@ -267,7 +270,8 @@ unsigned int _reencoder_utf8_encode_from_code_point(uint8_t* buffer, size_t inde
 }
 
 static inline unsigned int _reencoder_utf8_char_is_valid(uint8_t code_units[4], unsigned int units_expected, unsigned int* units_actual) {
-	// REENCODER_UTF_8 STATIC FUNCTION DEFINITION
+	// [Use Case] Internal Function (Static)
+	// [End-user Function Tested?] NA
 
 	unsigned int measured_units = 0;
 	if (units_actual != NULL) {
@@ -318,7 +322,8 @@ static inline unsigned int _reencoder_utf8_char_is_valid(uint8_t code_units[4], 
 }
 
 static inline unsigned int _reencoder_utf8_validity_check_1_is_expected_length(uint8_t code_units[4], unsigned int units_expected) {
-	// REENCODER_UTF_8 STATIC FUNCTION DEFINITION
+	// [Use Case] Internal Function (Static)
+	// [End-user Function Tested?] NA
 
 	for (unsigned int i = 1; i < units_expected; i++) {
 		if (code_units[i] == 0x00) {
@@ -330,7 +335,8 @@ static inline unsigned int _reencoder_utf8_validity_check_1_is_expected_length(u
 }
 
 static inline unsigned int _reencoder_utf8_validity_check_2_has_valid_continuation_bytes(uint8_t code_units[4], unsigned int units_expected) {
-	// REENCODER_UTF_8 STATIC FUNCTION DEFINITION
+	// [Use Case] Internal Function (Static)
+	// [End-user Function Tested?] NA
 
 	for (unsigned int i = 1; i < units_expected; i++) {
 		if ((code_units[i] & 0b11000000) != 0b10000000) {
@@ -342,7 +348,8 @@ static inline unsigned int _reencoder_utf8_validity_check_2_has_valid_continuati
 }
 
 static inline unsigned int _reencoder_utf8_validity_check_3_is_not_overlong(uint8_t code_units[4], unsigned int units_expected) {
-	// REENCODER_UTF_8 STATIC FUNCTION DEFINITION
+	// [Use Case] Internal Function (Static)
+	// [End-user Function Tested?] NA
 
 	// overlong encoding check for 2-byte long characters
 	// the first byte of a valid 2-byte UTF-8 sequence must be at least 0xC2.
@@ -376,7 +383,8 @@ static inline unsigned int _reencoder_utf8_validity_check_3_is_not_overlong(uint
 }
 
 static inline unsigned int _reencoder_utf8_validity_check_4_is_in_unicode_range(uint8_t code_units[4], unsigned int units_expected) {
-	// REENCODER_UTF_8 STATIC FUNCTION DEFINITION
+	// [Use Case] Internal Function (Static)
+	// [End-user Function Tested?] NA
 
 	// valid unicode range: U+0000 to U+10FFFF
 	// U+10FFFF equates to 0001 0000 1111 1111 1111 1111
@@ -389,7 +397,8 @@ static inline unsigned int _reencoder_utf8_validity_check_4_is_in_unicode_range(
 }
 
 static inline unsigned int _reencoder_utf8_validity_check_5_is_not_surrogate(uint8_t code_units[4], unsigned int units_expected) {
-	// REENCODER_UTF_8 STATIC FUNCTION DEFINITION
+	// [Use Case] Internal Function (Static)
+	// [End-user Function Tested?] NA
 
 	// surrogate pairs check: U+D800 to U+DFFF
 	// equates to 0b11101101 0b10100000 0b10000000 to 

@@ -138,6 +138,8 @@ void reencoder_unicode_struct_free(ReencoderUnicodeStruct* unicode_struct);
  *
  * @return Pointer to a `ReencoderUnicodeStruct` containing the same data as the provided unicode_struct.
  * @retval NULL If memory allocation fails or a NULL pointer is provided.
+ * 
+ * @note The returned `ReencoderUnicodeStruct` must be freed using `reencoder_unicode_struct_free()`.
  */
 ReencoderUnicodeStruct* reencoder_unicode_struct_duplicate(ReencoderUnicodeStruct* unicode_struct);
 
@@ -169,8 +171,6 @@ const char* reencoder_outcome_as_str(unsigned int outcome);
  * If the provided UTF string is invalid, a ReencoderUnicodeStruct handling that string directly will be returned.
  * ReencoderUnicodeStruct->num_chars will be 0 if any string is invalid (both provided and converted strings).
  *
- * The returned `ReencoderUnicodeStruct` must be freed using `reencoder_unicode_struct_free()` once it is no longer needed.
- *
  * @param[in] source_encoding Specifies source encoding type (UTF-8, UTF_16BE, UTF_16LE, UTF_32BE, or UTF_32LE). Source endian should follow system endianness, obtainable using `_reencoder_is_system_little_endian()`.
  * @param[in] target_encoding Specifies target encoding type (UTF-8, UTF_16BE, UTF_16LE, UTF_32BE, or UTF_32LE).
  * @param[in] source_uint_buffer Input UTF string. Must be represented as a uint8_t* (UTF-8), uint16_t* (UTF-16), or uint32_t* (UTF-32) and cast to const void*. Must be null-terminated: 0x00 (UTF-8), 0x0000 (UTF-16), and 0x00000000 (UTF-32).
@@ -178,6 +178,8 @@ const char* reencoder_outcome_as_str(unsigned int outcome);
  * @return Pointer to a `ReencoderUnicodeStruct` containing data for a string encoded in provided target encoding type.
  * @retval Pointer to a `ReencoderUnicodeStruct` containing data for a string encoded in provided source encoding type if the provided string is invalid.
  * @retval NULL If memory allocation fails or an invalid `source_encoding` or `target_encoding` is provided.
+ * 
+ * @note The returned `ReencoderUnicodeStruct` must be freed using `reencoder_unicode_struct_free()`.
  */
 ReencoderUnicodeStruct* reencoder_convert(enum ReencoderEncodeType source_encoding, enum ReencoderEncodeType target_encoding, const void* source_uint_buffer);
 

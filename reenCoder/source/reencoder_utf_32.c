@@ -36,7 +36,8 @@ static unsigned int _reencoder_utf32_validity_check_2_is_not_surrogate(uint32_t 
 // ##### //
 
 ReencoderUnicodeStruct* reencoder_utf32_parse_uint32(const uint32_t* string, enum ReencoderEncodeType target_endian) {
-	// REENCODER_UTF_32 USER FUNCTION DEFINITION
+	// [Use Case] End-user Function
+	// [End-user Function Tested?] Yes
 
 	if (target_endian != UTF_32BE && target_endian != UTF_32LE) {
 		return NULL;
@@ -56,10 +57,9 @@ ReencoderUnicodeStruct* reencoder_utf32_parse_uint32(const uint32_t* string, enu
 	return struct_utf32_str;
 }
 
-ReencoderUnicodeStruct* reencoder_utf32_parse_uint8(
-	const uint8_t* string, size_t bytes, enum ReencoderEncodeType source_endian, enum ReencoderEncodeType target_endian
-) {
-	// REENCODER_UTF_32 USER FUNCTION DEFINITION
+ReencoderUnicodeStruct* reencoder_utf32_parse_uint8(const uint8_t* string, size_t bytes, enum ReencoderEncodeType source_endian, enum ReencoderEncodeType target_endian) {
+	// [Use Case] End-user Function
+	// [End-user Function Tested?] Yes
 
 	if (target_endian != UTF_32BE && target_endian != UTF_32LE) {
 		return NULL;
@@ -95,8 +95,8 @@ ReencoderUnicodeStruct* reencoder_utf32_parse_uint8(
 }
 
 size_t _reencoder_utf32_strlen(const uint32_t* string) {
-	// REENCODER_UTF_32 INTERNAL FUNCTION DEFINITION
-	// ALSO DECLARED AS EXTERN IN reencoder_utf_common.h
+	// [Use Case] Internal Function (Non-static, Extern @ _common)
+	// [End-user Function Tested?] NA
 
 	const uint32_t* ptr_start = string;
 	const uint32_t* ptr_end = ptr_start;
@@ -109,12 +109,15 @@ size_t _reencoder_utf32_strlen(const uint32_t* string) {
 }
 
 unsigned int _reencoder_utf32_buffer_idx0_is_valid(const uint32_t* ptr) {
+	// [Use Case] Internal Function (Non-static, Extern @ _common)
+	// [End-user Function Tested?] NA
+
 	return _reencoder_utf32_char_is_valid(ptr[0]);
 }
 
 unsigned int _reencoder_utf32_seq_is_valid(const uint32_t* string, size_t length) {
-	// REENCODER_UTF_32 INTERNAL FUNCTION DEFINITION
-	// ALSO DECLARED AS EXTERN IN reencoder_utf_common.h
+	// [Use Case] Internal Function (Non-static, Extern @ _common)
+	// [End-user Function Tested?] NA
 
 	for (size_t i = 0; i < length; i++) {
 		unsigned int return_code = _reencoder_utf32_buffer_idx0_is_valid(string + i);
@@ -127,7 +130,8 @@ unsigned int _reencoder_utf32_seq_is_valid(const uint32_t* string, size_t length
 }
 
 void _reencoder_utf32_uint32_from_uint8(uint32_t* dest, const uint8_t* src, size_t bytes, enum ReencoderEncodeType source_endian) {
-	// REENCODER_UTF_32 INTERNAL FUNCTION DEFINITION
+	// [Use Case] Internal Function (Non-static, Extern @ _common)
+	// [End-user Function Tested?] NA
 
 	if (source_endian != UTF_32BE && source_endian != UTF_32LE) {
 		return;
@@ -170,8 +174,8 @@ void _reencoder_utf32_uint32_from_uint8(uint32_t* dest, const uint8_t* src, size
 }
 
 uint32_t _reencoder_utf32_decode_to_code_point(const uint32_t* ptr, unsigned int* units_read) {
-	// REENCODER_UTF_32 INTERNAL FUNCTION DEFINITION
-	// ALSO DECLARED AS EXTERN IN reencoder_utf_common.h
+	// [Use Case] Internal Function (Extern @ _common ONLY)
+	// [End-user Function Tested?] NA
 
 	uint32_t code_point = ptr[0];
 	*units_read = 1;
@@ -185,8 +189,8 @@ uint32_t _reencoder_utf32_decode_to_code_point(const uint32_t* ptr, unsigned int
 }
 
 unsigned int _reencoder_utf32_encode_from_code_point(uint32_t* buffer, size_t index, uint32_t code_point) {
-	// REENCODER_UTF_32 INTERNAL FUNCTION DEFINITION
-	// ALSO DECLARED AS EXTERN IN reencoder_utf_common.h
+	// [Use Case] Internal Function (Extern @ _common ONLY)
+	// [End-user Function Tested?] NA
 
 	if (!_reencoder_code_point_is_valid(code_point)) {
 		buffer[index] = _REENCODER_UTF32_REPLACEMENT_CHARACTER;
@@ -198,8 +202,8 @@ unsigned int _reencoder_utf32_encode_from_code_point(uint32_t* buffer, size_t in
 }
 
 void _reencoder_utf32_write_buffer_swap_endian(uint8_t* dest, const uint32_t* src, size_t length) {
-	// REENCODER_UTF_32 INTERNAL FUNCTION DEFINITION
-	// ALSO DECLARED AS EXTERN IN reencoder_utf_common.h
+	// [Use Case] Internal Function (Extern @ _common ONLY)
+	// [End-user Function Tested?] NA
 
 	for (size_t i = 0; i < length; i++) {
 		uint32_t val = src[i];
@@ -208,14 +212,9 @@ void _reencoder_utf32_write_buffer_swap_endian(uint8_t* dest, const uint32_t* sr
 	}
 }
 
-static inline uint32_t* _reencoder_utf32_grow_buffer(uint32_t* buffer, size_t* current_buffer_size, unsigned int allocate_only_one_unit) {
-	// REENCODER_UTF_32 STATIC FUNCTION DEFINITION
-
-	return (uint32_t*)_reencoder_grow_buffer(buffer, current_buffer_size, allocate_only_one_unit, sizeof(uint32_t));
-}
-
 static inline unsigned int _reencoder_utf32_char_is_valid(uint32_t code_unit) {
-	// REENCODER_UTF_32 STATIC FUNCTION DEFINITION
+	// [Use Case] Internal Function (Static)
+	// [End-user Function Tested?] NA
 
 	if (!_reencoder_utf32_validity_check_1_is_valid_range(code_unit)) {
 		return REENCODER_UTF32_ERR_OUT_OF_RANGE;
@@ -228,13 +227,16 @@ static inline unsigned int _reencoder_utf32_char_is_valid(uint32_t code_unit) {
 }
 
 static inline unsigned int _reencoder_utf32_validity_check_1_is_valid_range(uint32_t code_unit) {
-	// REENCODER_UTF_32 STATIC FUNCTION DEFINITION
+	// [Use Case] Internal Function (Static)
+	// [End-user Function Tested?] NA
 
 	// max range check: https://scripts.sil.org/cms/scripts/page.php?id=iws-appendixa&site_id=nrsi
 	return code_unit < 0x10FFFF;
 }
+
 static unsigned int _reencoder_utf32_validity_check_2_is_not_surrogate(uint32_t code_unit) {
-	// REENCODER_UTF_16 STATIC FUNCTION DEFINITION
+	// [Use Case] Internal Function (Static)
+	// [End-user Function Tested?] NA
 
 	// surrogate pair check
 	return code_unit < 0xD800 || code_unit > 0xDFFF;

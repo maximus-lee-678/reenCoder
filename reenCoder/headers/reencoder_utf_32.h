@@ -87,6 +87,8 @@ unsigned int _reencoder_utf32_seq_is_valid(const uint32_t* string, size_t length
  * @param[in] src Input UTF-32 string. Need not be null-terminated since 0x00 is valid in UTF-32 when represented in 1 byte sequences.
  * @param[in] bytes Byte count of input UTF-32 string.
  * @param[in] source_endian Specifies source UTF-32 endianness (UTF_32BE or UTF_32LE).
+ * 
+ * @return void
  */
 void _reencoder_utf32_uint32_from_uint8(uint32_t* dest, const uint8_t* src, size_t bytes, enum ReencoderEncodeType source_endian);
 

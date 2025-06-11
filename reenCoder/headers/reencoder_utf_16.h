@@ -100,6 +100,8 @@ unsigned int _reencoder_utf16_seq_is_valid(const uint16_t* string, size_t length
  * @param[in] src Input UTF-16 string. Need not be null-terminated since 0x00 is valid in UTF-16 when represented in 1 byte sequences.
  * @param[in] bytes Byte count of input UTF-16 string.
  * @param[in] source_endian Specifies source UTF-16 endianness (UTF_16BE or UTF_16LE).
+ * 
+ * @return void
  */
 void _reencoder_utf16_uint16_from_uint8(uint16_t* dest, const uint8_t* src, size_t bytes, enum ReencoderEncodeType source_endian);
 

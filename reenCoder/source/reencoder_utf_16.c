@@ -49,7 +49,8 @@ static inline unsigned int _reencoder_utf16_validity_check_3_is_low_surrogate(ui
 // ##### //
 
 ReencoderUnicodeStruct* reencoder_utf16_parse_uint16(const uint16_t* string, enum ReencoderEncodeType target_endian) {
-	// REENCODER_UTF_16 USER FUNCTION DEFINITION
+	// [Use Case] End-user Function
+	// [End-user Function Tested?] Yes
 
 	if (target_endian != UTF_16BE && target_endian != UTF_16LE) {
 		return NULL;
@@ -65,7 +66,8 @@ ReencoderUnicodeStruct* reencoder_utf16_parse_uint16(const uint16_t* string, enu
 }
 
 ReencoderUnicodeStruct* reencoder_utf16_parse_uint8(const uint8_t* string, size_t bytes, enum ReencoderEncodeType source_endian, enum ReencoderEncodeType target_endian) {
-	// REENCODER_UTF_16 USER FUNCTION DEFINITION
+	// [Use Case] End-user Function
+	// [End-user Function Tested?] Yes
 
 	if (target_endian != UTF_16BE && target_endian != UTF_16LE) {
 		return NULL;
@@ -95,8 +97,8 @@ ReencoderUnicodeStruct* reencoder_utf16_parse_uint8(const uint8_t* string, size_
 }
 
 size_t _reencoder_utf16_strlen(const uint16_t* string) {
-	// REENCODER_UTF_16 INTERNAL FUNCTION DEFINITION
-	// ALSO DECLARED AS EXTERN IN reencoder_utf_common.h
+	// [Use Case] Internal Function (Non-static, Extern @ _common)
+	// [End-user Function Tested?] NA
 
 	const uint16_t* ptr_start = string;
 	const uint16_t* ptr_end = ptr_start;
@@ -109,7 +111,8 @@ size_t _reencoder_utf16_strlen(const uint16_t* string) {
 }
 
 size_t _reencoder_utf16_determine_num_chars(const uint16_t* string) {
-	// REENCODER_UTF_16 INTERNAL FUNCTION DEFINITION
+	// [Use Case] Internal Function (Non-static, Extern @ _common)
+	// [End-user Function Tested?] NA
 
 	size_t examined_index = 0;
 	size_t num_utf16_chars = 0;
@@ -130,6 +133,9 @@ size_t _reencoder_utf16_determine_num_chars(const uint16_t* string) {
 }
 
 unsigned int _reencoder_utf16_buffer_idx0_is_valid(const uint16_t* ptr, size_t units_left, unsigned int* units_actual) {
+	// [Use Case] Internal Function (Non-static, Extern @ _common)
+	// [End-user Function Tested?] NA
+
 	uint16_t code_unit_1 = ptr[0];
 	unsigned int is_potential_surrogate_pair = !_reencoder_utf16_validity_check_1_is_not_surrogate(code_unit_1);
 	uint16_t code_unit_2 = is_potential_surrogate_pair && units_left > 1 ? ptr[1] : 0x0000;
@@ -138,8 +144,8 @@ unsigned int _reencoder_utf16_buffer_idx0_is_valid(const uint16_t* ptr, size_t u
 }
 
 unsigned int _reencoder_utf16_seq_is_valid(const uint16_t* string, size_t length) {
-	// REENCODER_UTF_16 INTERNAL FUNCTION DEFINITION
-	// ALSO DECLARED AS EXTERN IN reencoder_utf_common.h
+	// [Use Case] Internal Function (Non-static, Extern @ _common)
+	// [End-user Function Tested?] NA
 
 	for (size_t i = 0; i < length;) {
 		unsigned int units_actual = 0;
@@ -156,7 +162,8 @@ unsigned int _reencoder_utf16_seq_is_valid(const uint16_t* string, size_t length
 }
 
 void _reencoder_utf16_uint16_from_uint8(uint16_t* dest, const uint8_t* src, size_t bytes, enum ReencoderEncodeType source_endian) {
-	// REENCODER_UTF_16 INTERNAL FUNCTION DEFINITION
+	// [Use Case] Internal Function (Non-static, Extern @ _common)
+	// [End-user Function Tested?] NA
 
 	if (source_endian != UTF_16BE && source_endian != UTF_16LE) {
 		return;
@@ -194,8 +201,8 @@ void _reencoder_utf16_uint16_from_uint8(uint16_t* dest, const uint8_t* src, size
 }
 
 uint32_t _reencoder_utf16_decode_to_code_point(const uint16_t* ptr, unsigned int* char_units) {
-	// REENCODER_UTF_16 INTERNAL FUNCTION DEFINITION
-	// ALSO DECLARED AS EXTERN IN reencoder_utf_common.h
+	// [Use Case] Internal Function (Extern @ _common ONLY)
+	// [End-user Function Tested?] NA
 
 	uint16_t first = ptr[0];
 
@@ -226,8 +233,8 @@ uint32_t _reencoder_utf16_decode_to_code_point(const uint16_t* ptr, unsigned int
 }
 
 unsigned int _reencoder_utf16_encode_from_code_point(uint16_t* buffer, size_t index, uint32_t code_point) {
-	// REENCODER_UTF_16 INTERNAL FUNCTION DEFINITION
-	// ALSO DECLARED AS EXTERN IN reencoder_utf_common.h
+	// [Use Case] Internal Function (Extern @ _common ONLY)
+	// [End-user Function Tested?] NA
 
 	if (!_reencoder_code_point_is_valid(code_point)) {
 		buffer[index] = _REENCODER_UTF16_REPLACEMENT_CHARACTER;
@@ -249,8 +256,8 @@ unsigned int _reencoder_utf16_encode_from_code_point(uint16_t* buffer, size_t in
 }
 
 void _reencoder_utf16_write_buffer_swap_endian(uint8_t* dest, const uint16_t* src, size_t length) {
-	// REENCODER_UTF_16 INTERNAL FUNCTION DEFINITION
-	// ALSO DECLARED AS EXTERN IN reencoder_utf_common.h
+	// [Use Case] Internal Function (Extern @ _common ONLY)
+	// [End-user Function Tested?] NA
 
 	for (size_t i = 0; i < length; i++) {
 		uint16_t val = src[i];
@@ -260,7 +267,8 @@ void _reencoder_utf16_write_buffer_swap_endian(uint8_t* dest, const uint16_t* sr
 }
 
 static inline unsigned int _reencoder_utf16_char_is_valid(uint32_t code_unit_1, uint32_t code_unit_2, unsigned int units_expected, unsigned int* units_actual) {
-	// REENCODER_UTF_16 STATIC FUNCTION DEFINITION
+	// [Use Case] Internal Function (Static)
+	// [End-user Function Tested?] NA
 
 	if (units_actual != NULL) {
 		*units_actual = units_expected; // update later if errors found
@@ -286,19 +294,22 @@ static inline unsigned int _reencoder_utf16_char_is_valid(uint32_t code_unit_1, 
 }
 
 static inline unsigned int _reencoder_utf16_validity_check_1_is_not_surrogate(uint32_t code_unit) {
-	// REENCODER_UTF_16 STATIC FUNCTION DEFINITION
+	// [Use Case] Internal Function (Static)
+	// [End-user Function Tested?] NA
 
 	return code_unit < 0xD800 || code_unit > 0xDFFF; // valid BMP characters (0x0000-0xD7FF, 0xE000-0xFFFF)
 }
 
 static inline unsigned int _reencoder_utf16_validity_check_2_is_high_surrogate(uint32_t code_unit) {
-	// REENCODER_UTF_16 STATIC FUNCTION DEFINITION
+	// [Use Case] Internal Function (Static)
+	// [End-user Function Tested?] NA
 
 	return code_unit >= 0xD800 && code_unit <= 0xDBFF; // high surrogates (0xD800-0xDBFF)
 }
 
 static inline unsigned int _reencoder_utf16_validity_check_3_is_low_surrogate(uint32_t code_unit) {
-	// REENCODER_UTF_16 STATIC FUNCTION DEFINITION
+	// [Use Case] Internal Function (Static)
+	// [End-user Function Tested?] NA
 
 	return code_unit >= 0xDC00 && code_unit <= 0xDFFF; // low surrogates (0xDC00-0xDFFF)
 }

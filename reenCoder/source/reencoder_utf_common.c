@@ -1,6 +1,9 @@
 #include "../headers/reencoder_utf_common.h"
 
 void reencoder_unicode_struct_free(ReencoderUnicodeStruct* unicode_struct) {
+	// [Use Case] End-user Function
+	// [End-user Function Tested?] No
+
 	if (unicode_struct == NULL) {
 		return;
 	}
@@ -12,6 +15,9 @@ void reencoder_unicode_struct_free(ReencoderUnicodeStruct* unicode_struct) {
 }
 
 ReencoderUnicodeStruct* reencoder_unicode_struct_duplicate(ReencoderUnicodeStruct* unicode_struct) {
+	// [Use Case] End-user Function
+	// [End-user Function Tested?] No
+
 	if (unicode_struct == NULL) {
 		return NULL;
 	}
@@ -47,6 +53,9 @@ ReencoderUnicodeStruct* reencoder_unicode_struct_duplicate(ReencoderUnicodeStruc
 }
 
 const char* reencoder_encode_type_as_str(unsigned int encode_type) {
+	// [Use Case] End-user Function
+	// [End-user Function Tested?] No
+
 	if (encode_type >= (sizeof(_REENCODER_ENCODE_TYPE_ARR) / sizeof(_REENCODER_ENCODE_TYPE_ARR[0]))) {
 		return NULL;
 	}
@@ -55,6 +64,9 @@ const char* reencoder_encode_type_as_str(unsigned int encode_type) {
 }
 
 const char* reencoder_outcome_as_str(unsigned int outcome) {
+	// [Use Case] End-user Function
+	// [End-user Function Tested?] No
+
 	unsigned int outcome_offset = 0;
 
 	outcome_offset = outcome - _REENCODER_UTF8_PARSE_OFFSET;
@@ -80,6 +92,8 @@ ReencoderUnicodeStruct* reencoder_convert(enum ReencoderEncodeType source_encodi
 		(target_encoding != UTF_8 && target_encoding != UTF_16BE && target_encoding != UTF_16LE && target_encoding != UTF_32BE && target_encoding != UTF_32LE)) {
 		return NULL;
 	}
+	// [Use Case] End-user Function
+	// [End-user Function Tested?] Yes
 
 	// gather information about the source string, then check if source_uint_buffer string is valid for specified source_encoding.
 	// if not, return a struct with source_encoding.
@@ -149,6 +163,9 @@ ReencoderUnicodeStruct* reencoder_convert(enum ReencoderEncodeType source_encodi
 }
 
 unsigned int reencoder_repair_struct(ReencoderUnicodeStruct* unicode_struct) {
+	// [Use Case] End-user Function
+	// [End-user Function Tested?] Yes
+
 	if (unicode_struct == NULL) {
 		return REENCODER_REPAIR_FAILURE_NO_STRUCT;
 	}
@@ -266,6 +283,9 @@ unsigned int reencoder_repair_struct(ReencoderUnicodeStruct* unicode_struct) {
 }
 
 size_t reencoder_write_to_buffer(ReencoderUnicodeStruct* unicode_struct, uint8_t* target_buffer, unsigned int write_bom) {
+	// [Use Case] End-user Function
+	// [End-user Function Tested?] Yes
+
 	if (target_buffer == NULL || unicode_struct == NULL || unicode_struct->string_buffer == NULL) {
 		return 0;
 
@@ -302,6 +322,9 @@ size_t reencoder_write_to_buffer(ReencoderUnicodeStruct* unicode_struct, uint8_t
 }
 
 size_t reencoder_write_to_file(ReencoderUnicodeStruct* unicode_struct, FILE* fp_write_binary, unsigned int write_bom) {
+	// [Use Case] End-user Function
+	// [End-user Function Tested?] Yes
+
 	if (fp_write_binary == NULL || unicode_struct == NULL || unicode_struct->string_buffer == NULL) {
 		return 0;
 	}
@@ -346,6 +369,9 @@ size_t reencoder_write_to_file(ReencoderUnicodeStruct* unicode_struct, FILE* fp_
 }
 
 uint8_t reencoder_is_system_little_endian() {
+	// [Use Case] End-user Function
+	// [End-user Function Tested?] No
+
 	// BE: 0x0102 -> 0x01 0x02
 	// LE: 0x0102 -> 0x02 0x01
 	uint16_t determinator = 0x0102;
@@ -355,6 +381,9 @@ uint8_t reencoder_is_system_little_endian() {
 }
 
 ReencoderUnicodeStruct* _reencoder_unicode_struct_init(enum ReencoderEncodeType string_type) {
+	// [Use Case] Internal Function (Non-static ONLY)
+	// [End-user Function Tested?] NA
+
 	ReencoderUnicodeStruct* unicode_struct = (ReencoderUnicodeStruct*)malloc(sizeof(ReencoderUnicodeStruct));
 	if (unicode_struct == NULL) {
 		return NULL;
@@ -369,10 +398,10 @@ ReencoderUnicodeStruct* _reencoder_unicode_struct_init(enum ReencoderEncodeType 
 	return unicode_struct;
 }
 
-ReencoderUnicodeStruct* _reencoder_unicode_struct_express_populate(
-	enum ReencoderEncodeType string_type, const void* string_buffer, size_t string_buffer_bytes,
-	unsigned int string_validity, size_t num_chars
-) {
+ReencoderUnicodeStruct* _reencoder_unicode_struct_express_populate(enum ReencoderEncodeType string_type, const void* string_buffer, size_t string_buffer_bytes, unsigned int string_validity, size_t num_chars) {
+	// [Use Case] Internal Function (Non-static, Used in _8/16/32)
+	// [End-user Function Tested?] NA
+
 	ReencoderUnicodeStruct* unicode_struct = _reencoder_unicode_struct_init(string_type);
 	if (unicode_struct == NULL) {
 		return NULL;
@@ -478,6 +507,9 @@ ReencoderUnicodeStruct* _reencoder_unicode_struct_express_populate(
 }
 
 void* _reencoder_grow_buffer(void* buffer, size_t* buffer_size_bytes, unsigned int allocate_only_one_unit, size_t element_size) {
+	// [Use Case] Internal Function (Non-static ONLY)
+	// [End-user Function Tested?] NA
+
 	size_t new_size = 0;
 
 	if (*buffer_size_bytes == 0 && !allocate_only_one_unit) {
@@ -501,9 +533,10 @@ void* _reencoder_grow_buffer(void* buffer, size_t* buffer_size_bytes, unsigned i
 	return new_buffer;
 }
 
-void* _reencoder_grow_buffer_dynamic(
-	enum ReencoderEncodeType string_type, void* buffer, size_t* buffer_size_bytes, size_t buffer_current_index, unsigned int allocate_only_one_unit
-) {
+void* _reencoder_grow_buffer_dynamic(enum ReencoderEncodeType string_type, void* buffer, size_t* buffer_size_bytes, size_t buffer_current_index, unsigned int allocate_only_one_unit) {
+	// [Use Case] Internal Function (Non-static ONLY)
+	// [End-user Function Tested?] NA
+
 	size_t required_bytes = 0;
 
 	switch (string_type) {
@@ -534,10 +567,10 @@ void* _reencoder_grow_buffer_dynamic(
 	return buffer;
 }
 
-unsigned int _reencoder_change_encoding_dynamic(
-	enum ReencoderEncodeType source_encoding, enum ReencoderEncodeType target_encoding, size_t string_num_code_units,
-	size_t* output_buffer_index, size_t* output_buffer_size, const void* source_buffer, void** output_buffer
-) {
+unsigned int _reencoder_change_encoding_dynamic(enum ReencoderEncodeType source_encoding, enum ReencoderEncodeType target_encoding, size_t string_num_code_units, size_t* output_buffer_index, size_t* output_buffer_size, const void* source_buffer, void** output_buffer) {
+	// [Use Case] Internal Function (Non-static ONLY)
+	// [End-user Function Tested?] NA
+
 	if (source_buffer == NULL || output_buffer_index == NULL || output_buffer_size == NULL) {
 		return REENCODER_CONVERT_FAILURE_NULL_ARGS;
 	}
@@ -579,7 +612,9 @@ unsigned int _reencoder_change_encoding_dynamic(
 				code_point = _reencoder_utf32_decode_to_code_point((const uint32_t*)ptr_read, &units_read);
 			}
 			else {
-				units_read = 1; // always read at least 1 or infinite loop will happen, since we will be stuck processing the same unit over and over (units_read isn't updated in the if check for UTF-32)
+				// always read at least 1 or infinite loop will happen, since we will be stuck processing the same unit over and over 
+				// (units_read isn't updated in the if check for UTF-32)
+				units_read = 1;
 				code_point = _REENCODER_UNICODE_REPLACEMENT_CHARACTER;
 			}
 			ptr_read = (const uint32_t*)ptr_read + units_read;
@@ -623,6 +658,9 @@ unsigned int _reencoder_change_encoding_dynamic(
 }
 
 unsigned int _reencoder_code_point_is_valid(const uint32_t code_point) {
+	// [Use Case] Internal Function (Used in _8/16/32 ONLY)
+	// [End-user Function Tested?] NA
+
 	// (INVALID) unicode out of range
 	if (code_point > 0x10FFFF) {
 		return 0;
