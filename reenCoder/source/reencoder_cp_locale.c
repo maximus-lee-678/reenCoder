@@ -30,13 +30,13 @@ static void _reencoder_locale_unset_cp();
 #define CP_UNINITIALISED -1
 static int _console_default_code_page = CP_UNINITIALISED;
 
-void _reencoder_locale_init_utf8() {
+void reencoder_locale_init_utf8() {
 	_reencoder_locale_get_default_cp();
 	_reencoder_locale_set_cp_utf8();
 	_reencoder_locale_set_locale_utf8();
 }
 
-void _reencoder_locale_deinit() {
+void reencoder_locale_deinit() {
 	_reencoder_locale_unset_cp();
 	_reencoder_locale_unset_locale();
 }
