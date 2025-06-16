@@ -152,6 +152,13 @@ void _reencoder_test_write_utf_8_wo_bom_to_buffer(void** state);
 void _reencoder_test_write_utf_8_w_bom_to_file(void** state);
 void _reencoder_test_write_utf_8_wo_bom_to_file(void** state);
 
+// Multi-byte length
+void _reencoder_test_check_for_multibyte_utf_8_seq_1_byte(void** state);
+void _reencoder_test_check_for_multibyte_utf_8_seq_2_byte(void** state);
+void _reencoder_test_check_for_multibyte_utf_8_seq_3_byte(void** state);
+void _reencoder_test_check_for_multibyte_utf_8_seq_4_byte(void** state);
+void _reencoder_test_check_for_multibyte_utf_8_seq_invalid(void** state);
+
 static struct CMUnitTest _reencoder_utf_8_test_array[] = {
 	// UTF-8 uint8_t
 	cmocka_unit_test_teardown(_reencoder_test_valid_utf_8_valid_1_byte, _reencoder_test_teardown_struct),
@@ -178,5 +185,11 @@ static struct CMUnitTest _reencoder_utf_8_test_array[] = {
 	cmocka_unit_test(_reencoder_test_write_utf_8_w_bom_to_buffer),
 	cmocka_unit_test(_reencoder_test_write_utf_8_wo_bom_to_buffer),
 	cmocka_unit_test(_reencoder_test_write_utf_8_w_bom_to_file),
-	cmocka_unit_test(_reencoder_test_write_utf_8_wo_bom_to_file)
+	cmocka_unit_test(_reencoder_test_write_utf_8_wo_bom_to_file),
+	// Multi-byte length
+	cmocka_unit_test(_reencoder_test_check_for_multibyte_utf_8_seq_1_byte),
+	cmocka_unit_test(_reencoder_test_check_for_multibyte_utf_8_seq_2_byte),
+	cmocka_unit_test(_reencoder_test_check_for_multibyte_utf_8_seq_3_byte),
+	cmocka_unit_test(_reencoder_test_check_for_multibyte_utf_8_seq_4_byte),
+	cmocka_unit_test(_reencoder_test_check_for_multibyte_utf_8_seq_invalid)
 };

@@ -89,15 +89,15 @@ ReencoderUnicodeStruct* reencoder_utf8_parse(const uint8_t* string) {
 	return struct_utf8_str;
 }
 
-unsigned int reencoder_utf8_contains_multibyte(const uint8_t* string) {
+int reencoder_utf8_contains_multibyte(const uint8_t* string) {
 	// [Use Case] End-user Function
-	// [End-user Function Tested?] No
+	// [End-user Function Tested?] Yes
 
 	size_t examined_index = 0;
 	while (string[examined_index] != '\0') {
 		switch (_reencoder_utf8_determine_length_from_first_byte(string[examined_index])) {
 		case 0:
-			return 0;
+			return -1;
 		case 1:
 			examined_index++;
 			break;
@@ -106,7 +106,7 @@ unsigned int reencoder_utf8_contains_multibyte(const uint8_t* string) {
 		}
 	}
 
-	return 1;
+	return 0;
 }
 
 size_t _reencoder_utf8_determine_num_chars(const uint8_t* string) {

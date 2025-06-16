@@ -35,9 +35,9 @@ ReencoderUnicodeStruct* reencoder_utf8_parse(const uint8_t* string);
  * @param[in] string UTF-8 string.
  *
  * @return 1 if string contains multibyte sequences, 0 if it does not.
- * @retval 0 if an invalid leading byte is detected.
+ * @retval -1 if an invalid leading byte is detected.
  */
-unsigned int reencoder_utf8_contains_multibyte(const uint8_t* string);
+int reencoder_utf8_contains_multibyte(const uint8_t* string);
 
 /**
  * @brief Determines the number of UTF-8 characters, not bytes in a string.
