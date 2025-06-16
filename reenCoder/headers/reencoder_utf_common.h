@@ -123,11 +123,11 @@ static const uint8_t _REENCODER_UTF32LE_BOM[] = { 0xFF, 0xFE, 0x00, 0x00 };
 /**
  * @brief Frees a `ReencoderUnicodeStruct` and its string buffer.
  *
- * @param[in] unicode_struct Pointer to the `ReencoderUnicodeStruct` to be freed.
+ * @param[in] unicode_struct Address of the pointer to the `ReencoderUnicodeStruct` to be freed.
  *
  * @return void
  */
-void reencoder_unicode_struct_free(ReencoderUnicodeStruct* unicode_struct);
+void reencoder_unicode_struct_free(ReencoderUnicodeStruct** unicode_struct);
 
 /**
  * @brief Creates a copy of an existing `ReencoderUnicodeStruct`.

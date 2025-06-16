@@ -1,17 +1,19 @@
 #include "../headers/reencoder_utf_common.h"
 
-void reencoder_unicode_struct_free(ReencoderUnicodeStruct* unicode_struct) {
+void reencoder_unicode_struct_free(ReencoderUnicodeStruct** unicode_struct) {
 	// [Use Case] End-user Function
 	// [End-user Function Tested?] No
 
-	if (unicode_struct == NULL) {
+	if (unicode_struct == NULL || *unicode_struct == NULL) {
 		return;
 	}
 
-	if (unicode_struct->string_buffer != NULL) {
-		free(unicode_struct->string_buffer);
+	if ((*unicode_struct)->string_buffer != NULL) {
+		free((*unicode_struct)->string_buffer);
 	}
-	free(unicode_struct);
+	free(*unicode_struct);
+
+	*unicode_struct = NULL;
 }
 
 ReencoderUnicodeStruct* reencoder_unicode_struct_duplicate(ReencoderUnicodeStruct* unicode_struct) {
@@ -40,7 +42,7 @@ ReencoderUnicodeStruct* reencoder_unicode_struct_duplicate(ReencoderUnicodeStruc
 	}
 	new_unicode_struct->string_buffer = malloc(unicode_struct->num_bytes + null_terminator_size);
 	if (new_unicode_struct->string_buffer == NULL) {
-		reencoder_unicode_struct_free(new_unicode_struct);
+		reencoder_unicode_struct_free(&new_unicode_struct);
 		return NULL;
 	}
 
@@ -412,7 +414,7 @@ ReencoderUnicodeStruct* _reencoder_unicode_struct_express_populate(enum Reencode
 	case UTF_8:
 		unicode_struct->string_buffer = (uint8_t*)malloc(string_buffer_bytes + sizeof(uint8_t));
 		if (unicode_struct->string_buffer == NULL) {
-			reencoder_unicode_struct_free(unicode_struct);
+			reencoder_unicode_struct_free(&unicode_struct);
 			return NULL;
 		}
 
@@ -423,7 +425,7 @@ ReencoderUnicodeStruct* _reencoder_unicode_struct_express_populate(enum Reencode
 	case UTF_16BE:
 		unicode_struct->string_buffer = (uint8_t*)malloc(string_buffer_bytes + sizeof(uint16_t));
 		if (unicode_struct->string_buffer == NULL) {
-			reencoder_unicode_struct_free(unicode_struct);
+			reencoder_unicode_struct_free(&unicode_struct);
 			return NULL;
 		}
 
@@ -441,7 +443,7 @@ ReencoderUnicodeStruct* _reencoder_unicode_struct_express_populate(enum Reencode
 	case UTF_16LE:
 		unicode_struct->string_buffer = (uint8_t*)malloc(string_buffer_bytes + sizeof(uint16_t));
 		if (unicode_struct->string_buffer == NULL) {
-			reencoder_unicode_struct_free(unicode_struct);
+			reencoder_unicode_struct_free(&unicode_struct);
 			return NULL;
 		}
 
@@ -459,7 +461,7 @@ ReencoderUnicodeStruct* _reencoder_unicode_struct_express_populate(enum Reencode
 	case UTF_32BE:
 		unicode_struct->string_buffer = (uint8_t*)malloc(string_buffer_bytes + sizeof(uint32_t));
 		if (unicode_struct->string_buffer == NULL) {
-			reencoder_unicode_struct_free(unicode_struct);
+			reencoder_unicode_struct_free(&unicode_struct);
 			return NULL;
 		}
 
@@ -475,7 +477,7 @@ ReencoderUnicodeStruct* _reencoder_unicode_struct_express_populate(enum Reencode
 	case UTF_32LE:
 		unicode_struct->string_buffer = (uint8_t*)malloc(string_buffer_bytes + sizeof(uint32_t));
 		if (unicode_struct->string_buffer == NULL) {
-			reencoder_unicode_struct_free(unicode_struct);
+			reencoder_unicode_struct_free(&unicode_struct);
 			return NULL;
 		}
 
@@ -489,7 +491,7 @@ ReencoderUnicodeStruct* _reencoder_unicode_struct_express_populate(enum Reencode
 		}
 		break;
 	default:
-		reencoder_unicode_struct_free(unicode_struct);
+		reencoder_unicode_struct_free(&unicode_struct);
 		return NULL;
 	}
 
