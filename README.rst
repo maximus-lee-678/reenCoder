@@ -5,11 +5,11 @@ A re-implementation of the Unicode standard in C, originally created to deal wit
 - Allows for processing of, replacement of malformed characters, and conversion between UTF-8, UTF-16, and UTF-32 string encodings.
 - Being a Windows utility library, also comes with some helper functions to display UTF-8 instead of mojibake in the CMD prompt.
 
-  Have you ever seen the true face of πÇÄ ≡ƒç╝ ≡ƒç« ≡ƒç│ ≡ƒç⌐ ≡ƒç┤ ≡ƒç╝ ≡ƒç╕ πÇÅ, exile?
+  Have you ever seen the true face of πÇÄ≡ƒåå≡ƒà╕≡ƒà╜≡ƒà│≡ƒà╛≡ƒåå≡ƒåéπÇÅ, exile?
 
 🏭 Usage
 ---------
-- Get the condensed header/source files from the `Releases <https://github.com/maximus-lee-678/reenCoder/releases>`_ tab. (🛠️)
+- Get the condensed header/source files from the `Releases <https://github.com/maximus-lee-678/reenCoder/releases>`_ tab. (🛠️ Working on automated condensation, v1.0 is hand-assembled)
 - Add these files to your C project.
 
 1. Functionality is exposed through the ReencoderUnicodeStruct struct.
