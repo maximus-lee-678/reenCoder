@@ -224,3 +224,33 @@ void _reencoder_test_write_utf_8_wo_bom_to_file(void** state) {
 
 	fclose(fp_tmp);
 }
+
+void _reencoder_test_check_for_multibyte_utf_8_seq_1_byte(void** state) {
+	(void)state;
+
+	assert_int_equal(reencoder_utf8_contains_multibyte(_reencoder_test_string_utf_8_valid_1_byte), 0);
+}
+
+void _reencoder_test_check_for_multibyte_utf_8_seq_2_byte(void** state) {
+	(void)state;
+
+	assert_int_equal(reencoder_utf8_contains_multibyte(_reencoder_test_string_utf_8_valid_2_byte), 1);
+}
+
+void _reencoder_test_check_for_multibyte_utf_8_seq_3_byte(void** state) {
+	(void)state;
+
+	assert_int_equal(reencoder_utf8_contains_multibyte(_reencoder_test_string_utf_8_valid_3_byte), 1);
+}
+
+void _reencoder_test_check_for_multibyte_utf_8_seq_4_byte(void** state) {
+	(void)state;
+
+	assert_int_equal(reencoder_utf8_contains_multibyte(_reencoder_test_string_utf_8_valid_4_byte), 1);
+}
+
+void _reencoder_test_check_for_multibyte_utf_8_seq_invalid(void** state) {
+	(void)state;
+
+	assert_int_equal(reencoder_utf8_contains_multibyte(_reencoder_test_string_utf_8_invalid_lead), -1);
+}

@@ -2,7 +2,7 @@
 
 void reencoder_unicode_struct_free(ReencoderUnicodeStruct** unicode_struct) {
 	// [Use Case] End-user Function
-	// [End-user Function Tested?] No
+	// [End-user Function Tested?] Yes
 
 	if (unicode_struct == NULL || *unicode_struct == NULL) {
 		return;
@@ -18,7 +18,7 @@ void reencoder_unicode_struct_free(ReencoderUnicodeStruct** unicode_struct) {
 
 ReencoderUnicodeStruct* reencoder_unicode_struct_duplicate(ReencoderUnicodeStruct* unicode_struct) {
 	// [Use Case] End-user Function
-	// [End-user Function Tested?] No
+	// [End-user Function Tested?] Yes
 
 	if (unicode_struct == NULL) {
 		return NULL;
@@ -56,7 +56,7 @@ ReencoderUnicodeStruct* reencoder_unicode_struct_duplicate(ReencoderUnicodeStruc
 
 const char* reencoder_encode_type_as_str(unsigned int encode_type) {
 	// [Use Case] End-user Function
-	// [End-user Function Tested?] No
+	// [End-user Function Tested?] No (not planned)
 
 	if (encode_type >= (sizeof(_REENCODER_ENCODE_TYPE_ARR) / sizeof(_REENCODER_ENCODE_TYPE_ARR[0]))) {
 		return NULL;
@@ -67,7 +67,7 @@ const char* reencoder_encode_type_as_str(unsigned int encode_type) {
 
 const char* reencoder_outcome_as_str(unsigned int outcome) {
 	// [Use Case] End-user Function
-	// [End-user Function Tested?] No
+	// [End-user Function Tested?] No (not planned)
 
 	unsigned int outcome_offset = 0;
 
@@ -372,7 +372,7 @@ size_t reencoder_write_to_file(ReencoderUnicodeStruct* unicode_struct, FILE* fp_
 
 uint8_t reencoder_is_system_little_endian() {
 	// [Use Case] End-user Function
-	// [End-user Function Tested?] No
+	// [End-user Function Tested?] No (not planned)
 
 	// BE: 0x0102 -> 0x01 0x02
 	// LE: 0x0102 -> 0x02 0x01
