@@ -92,7 +92,7 @@ void _reencoder_test_write_utf_32_be_wo_bom_to_buffer(void** state);
 void _reencoder_test_write_utf_32_be_w_bom_to_file(void** state);
 void _reencoder_test_write_utf_32_be_wo_bom_to_file(void** state);
 
-static struct CMUnitTest __reencoder_utf_32_test_array[] = {
+static struct CMUnitTest _reencoder_utf_32_test_array[] = {
 	// UTF-32 uint32_t
 	cmocka_unit_test_teardown(_reencoder_test_valid_utf_32_u32_valid, _reencoder_test_teardown_struct),
 	cmocka_unit_test_teardown(_reencoder_test_valid_utf_32_u32_valid_long_sequence, _reencoder_test_teardown_struct),

@@ -114,7 +114,7 @@ void _reencoder_test_write_utf_16_be_wo_bom_to_buffer(void** state);
 void _reencoder_test_write_utf_16_be_w_bom_to_file(void** state);
 void _reencoder_test_write_utf_16_be_wo_bom_to_file(void** state);
 
-static struct CMUnitTest __reencoder_utf_16_test_array[] = {
+static struct CMUnitTest _reencoder_utf_16_test_array[] = {
 	// UTF-16 uint16_t
 	cmocka_unit_test_teardown(_reencoder_test_valid_utf_16_u16_valid_2_byte, _reencoder_test_teardown_struct),
 	cmocka_unit_test_teardown(_reencoder_test_valid_utf_16_u16_valid_4_byte, _reencoder_test_teardown_struct),

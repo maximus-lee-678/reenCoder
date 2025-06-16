@@ -1,6 +1,4 @@
-﻿// Shoutout to ≡ƒç▓ ≡ƒç┤ ≡ƒç» ≡ƒç« ≡ƒçº ≡ƒçª ≡ƒç░ ≡ƒç¬ caused by Windows, this one's just for you!!
-
-#pragma once
+﻿#pragma once
 
 #include <Windows.h>
 #include <locale.h>
