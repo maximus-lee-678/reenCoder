@@ -1,5 +1,7 @@
 #include "../headers/reencoder_cp_locale.h"
 
+#if defined(_WIN32) || defined(_WIN64)
+
 #define _REENCODER_LOCALE_UTF8 ".UTF-8"
 
 /**
@@ -62,3 +64,17 @@ static void _reencoder_locale_unset_cp() {
 		SetConsoleOutputCP(_console_default_code_page);
 	}
 }
+
+#endif
+
+#if defined(__unix__)
+
+void reencoder_locale_init_utf8() {
+	return;
+}
+
+void reencoder_locale_deinit() {
+	return;
+}
+
+#endif
