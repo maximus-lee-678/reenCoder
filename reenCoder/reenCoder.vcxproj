@@ -127,7 +127,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.c" />
     <ClCompile Include="source\reencoder_cp_locale.c" />
     <ClCompile Include="source\reencoder_utf_16.c" />
     <ClCompile Include="source\reencoder_utf_32.c" />
