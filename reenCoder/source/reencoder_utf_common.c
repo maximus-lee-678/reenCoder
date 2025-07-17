@@ -40,7 +40,7 @@ ReencoderUnicodeStruct* reencoder_unicode_struct_duplicate(ReencoderUnicodeStruc
 	else if (unicode_struct->string_type == UTF_32BE || unicode_struct->string_type == UTF_32LE) {
 		null_terminator_size = sizeof(uint32_t);
 	}
-	new_unicode_struct->string_buffer = malloc(unicode_struct->num_bytes + null_terminator_size);
+	new_unicode_struct->string_buffer = (uint8_t*)malloc(unicode_struct->num_bytes + null_terminator_size);
 	if (new_unicode_struct->string_buffer == NULL) {
 		reencoder_unicode_struct_free(&new_unicode_struct);
 		return NULL;
@@ -103,7 +103,8 @@ ReencoderUnicodeStruct* reencoder_convert(enum ReencoderEncodeType source_encodi
 	size_t string_size_bytes = 0;
 	unsigned int input_buffer_validity = 0;
 	if (source_encoding == UTF_8) {
-		string_num_code_units = strlen((uint8_t*)source_uint_buffer);
+		// okay to cast a uint8_t to a char* for strlen here, since we are only looking for NULLs and don't care about lost data due to the sign bit
+		string_num_code_units = strlen((const char*)source_uint_buffer);
 		string_size_bytes = string_num_code_units * sizeof(uint8_t);
 		input_buffer_validity = _reencoder_utf8_seq_is_valid((const uint8_t*)source_uint_buffer);
 		if (input_buffer_validity != REENCODER_UTF8_VALID) {
@@ -183,7 +184,7 @@ unsigned int reencoder_repair_struct(ReencoderUnicodeStruct* unicode_struct) {
 	void* output_buffer = NULL;
 
 	void* source_uint_buffer = NULL;
-	enum ReencoderEncodeType source_encoding = 0;
+	enum ReencoderEncodeType source_encoding;
 	size_t string_num_code_units = 0;
 	size_t bytes_adjusted = 0;
 
@@ -235,11 +236,11 @@ unsigned int reencoder_repair_struct(ReencoderUnicodeStruct* unicode_struct) {
 	// assign new string buffer to og struct
 	// endianness of original string may have been swapped during the conversion to uint16/32_t
 	if (unicode_struct->string_type == UTF_8) {
-		unicode_struct->string_buffer = output_buffer;
+		unicode_struct->string_buffer = (uint8_t*)output_buffer;
 	}
 	else if (unicode_struct->string_type == UTF_16BE || unicode_struct->string_type == UTF_16LE) {
 		if (source_encoding == unicode_struct->string_type) {
-			unicode_struct->string_buffer = output_buffer;
+			unicode_struct->string_buffer = (uint8_t*)output_buffer; // can cast to uint8_t* since we are storing to a uint8_t* buffer
 		}
 		else {
 			unicode_struct->string_buffer = (uint8_t*)malloc(bytes_adjusted + sizeof(uint16_t));
@@ -252,7 +253,7 @@ unsigned int reencoder_repair_struct(ReencoderUnicodeStruct* unicode_struct) {
 	}
 	else if (unicode_struct->string_type == UTF_32BE || unicode_struct->string_type == UTF_32LE) {
 		if (source_encoding == unicode_struct->string_type) {
-			unicode_struct->string_buffer = output_buffer;
+			unicode_struct->string_buffer = (uint8_t*)output_buffer; // can cast to uint8_t* since we are storing to a uint8_t* buffer
 		}
 		else {
 			unicode_struct->string_buffer = (uint8_t*)malloc(bytes_adjusted + sizeof(uint32_t));
@@ -592,7 +593,7 @@ unsigned int _reencoder_change_encoding_dynamic(enum ReencoderEncodeType source_
 		unsigned int units_read = 0;
 		uint32_t code_point = 0x00000000;
 		if (source_encoding == UTF_8) {
-			if (_reencoder_utf8_buffer_idx0_is_valid(ptr_read, string_num_code_units - units_processed, &units_read) == REENCODER_UTF8_VALID) {
+			if (_reencoder_utf8_buffer_idx0_is_valid((const uint8_t*)ptr_read, string_num_code_units - units_processed, &units_read) == REENCODER_UTF8_VALID) {
 				code_point = _reencoder_utf8_decode_to_code_point((const uint8_t*)ptr_read, &units_read);
 			}
 			else {
@@ -601,7 +602,7 @@ unsigned int _reencoder_change_encoding_dynamic(enum ReencoderEncodeType source_
 			ptr_read = (const uint8_t*)ptr_read + units_read;
 		}
 		else if (source_encoding == UTF_16BE || source_encoding == UTF_16LE) {
-			if (_reencoder_utf16_buffer_idx0_is_valid(ptr_read, string_num_code_units - units_processed, &units_read) == REENCODER_UTF16_VALID) {
+			if (_reencoder_utf16_buffer_idx0_is_valid((const uint16_t*)ptr_read, string_num_code_units - units_processed, &units_read) == REENCODER_UTF16_VALID) {
 				code_point = _reencoder_utf16_decode_to_code_point((const uint16_t*)ptr_read, &units_read);
 			}
 			else {
@@ -610,7 +611,7 @@ unsigned int _reencoder_change_encoding_dynamic(enum ReencoderEncodeType source_
 			ptr_read = (const uint16_t*)ptr_read + units_read;
 		}
 		else if (source_encoding == UTF_32BE || source_encoding == UTF_32LE) {
-			if (_reencoder_utf32_buffer_idx0_is_valid(ptr_read) == REENCODER_UTF32_VALID) {
+			if (_reencoder_utf32_buffer_idx0_is_valid((const uint32_t*)ptr_read) == REENCODER_UTF32_VALID) {
 				code_point = _reencoder_utf32_decode_to_code_point((const uint32_t*)ptr_read, &units_read);
 			}
 			else {

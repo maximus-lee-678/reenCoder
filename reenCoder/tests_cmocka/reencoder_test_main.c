@@ -34,6 +34,18 @@ static const char* REENCODER_FILE_NAMES_FROM_TEST_DIR[] = {
 	"../source/reencoder_utf_16.c",
 	"../source/reencoder_utf_32.c"
 };
+static const char* REENCODER_FILE_NAMES_FROM_DEBUG[] = {
+	"../../reenCoder/headers/reencoder_cp_locale.h",
+	"../../reenCoder/headers/reencoder_utf_common.h",
+	"../../reenCoder/headers/reencoder_utf_8.h",
+	"../../reenCoder/headers/reencoder_utf_16.h",
+	"../../reenCoder/headers/reencoder_utf_32.h",
+	"../../reenCoder/source/reencoder_cp_locale.c",
+	"../../reenCoder/source/reencoder_utf_common.c",
+	"../../reenCoder/source/reencoder_utf_8.c",
+	"../../reenCoder/source/reencoder_utf_16.c",
+	"../../reenCoder/source/reencoder_utf_32.c"
+};
 
 int main(void) {
 	int total_tests = 0;
@@ -71,6 +83,9 @@ int main(void) {
 		}
 		else if (!consolidator_main(REENCODER_OUTPUT_FILE_NAME, NULL, 10, REENCODER_FILE_NAMES_FROM_TEST_DIR, 0, NULL)) {
 			printf("Consolidated files written to %s at %s (Test Dir).\n", REENCODER_OUTPUT_FILE_NAME, buf_cwd);
+		}
+		else if (!consolidator_main(REENCODER_OUTPUT_FILE_NAME, NULL, 10, REENCODER_FILE_NAMES_FROM_DEBUG, 0, NULL)) {
+			printf("Consolidated files written to %s at %s (Debug Folder).\n", REENCODER_OUTPUT_FILE_NAME, buf_cwd);
 		}
 		else {
 			printf("Could not find files to consolidate! Working directory: %s\n", buf_cwd);

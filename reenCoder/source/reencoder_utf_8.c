@@ -82,8 +82,9 @@ ReencoderUnicodeStruct* reencoder_utf8_parse(const uint8_t* string) {
 	// [Use Case] End-user Function
 	// [End-user Function Tested?] Yes
 
+	// okay to cast a uint8_t to a char* for strlen here, since we are only looking for NULLs and don't care about lost data due to the sign bit
 	ReencoderUnicodeStruct* struct_utf8_str = _reencoder_unicode_struct_express_populate(
-		UTF_8, (const void*)string, strlen(string), _reencoder_utf8_seq_is_valid(string), _reencoder_utf8_determine_num_chars(string)
+		UTF_8, (const void*)string, strlen((const char*)string), _reencoder_utf8_seq_is_valid(string), _reencoder_utf8_determine_num_chars(string)
 	);
 
 	return struct_utf8_str;
@@ -149,7 +150,8 @@ unsigned int _reencoder_utf8_seq_is_valid(const uint8_t* string) {
 	// [Use Case] Internal Function (Non-static, Extern @ _common)
 	// [End-user Function Tested?] NA
 
-	size_t input_string_len = strlen(string);
+	// okay to cast a uint8_t to a char* for strlen here, since we are only looking for NULLs and don't care about lost data due to the sign bit
+	size_t input_string_len = strlen((const char*)string);
 
 	for (size_t i = 0; i < input_string_len;) {
 		unsigned int units_actual = 0;
