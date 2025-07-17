@@ -2,10 +2,38 @@
 #include <stddef.h>
 #include <setjmp.h>
 #include <cmocka.h>
+
 #include "reencoder_test_universal.h"
 #include "reencoder_test_utf_8.h"
 #include "reencoder_test_utf_16.h"
 #include "reencoder_test_utf_32.h"
+#include "../Consolidator/consolidator.h"
+
+#define REENCODER_OUTPUT_FILE_NAME "reencoder.h"
+static const char* REENCODER_FILE_NAMES_ROOT[] = {
+	"headers/reencoder_cp_locale.h",
+	"headers/reencoder_utf_common.h",
+	"headers/reencoder_utf_8.h",
+	"headers/reencoder_utf_16.h",
+	"headers/reencoder_utf_32.h",
+	"source/reencoder_cp_locale.c",
+	"source/reencoder_utf_common.c",
+	"source/reencoder_utf_8.c",
+	"source/reencoder_utf_16.c",
+	"source/reencoder_utf_32.c"
+};
+static const char* REENCODER_FILE_NAMES_FROM_TEST_DIR[] = {
+	"../headers/reencoder_cp_locale.h",
+	"../headers/reencoder_utf_common.h",
+	"../headers/reencoder_utf_8.h",
+	"../headers/reencoder_utf_16.h",
+	"../headers/reencoder_utf_32.h",
+	"../source/reencoder_cp_locale.c",
+	"../source/reencoder_utf_common.c",
+	"../source/reencoder_utf_8.c",
+	"../source/reencoder_utf_16.c",
+	"../source/reencoder_utf_32.c"
+};
 
 int main(void) {
 	int total_tests = 0;
@@ -33,6 +61,24 @@ int main(void) {
 	printf("Passed      : %d\n", total_tests - total_failed);
 	printf("Failed      : %d\n", total_failed);
 	printf("==================\n");
+
+	if (total_failed == 0) {
+		uint8_t buf_cwd[512] = { '\0' };
+		consolidator_get_working_dir(buf_cwd, 512);
+
+		if (!consolidator_main(REENCODER_OUTPUT_FILE_NAME, NULL, 10, REENCODER_FILE_NAMES_ROOT, 0, NULL)) {
+			printf("Consolidated files written to %s at %s (Root).\n", REENCODER_OUTPUT_FILE_NAME, buf_cwd);
+		}
+		else if (!consolidator_main(REENCODER_OUTPUT_FILE_NAME, NULL, 10, REENCODER_FILE_NAMES_FROM_TEST_DIR, 0, NULL)) {
+			printf("Consolidated files written to %s at %s (Test Dir).\n", REENCODER_OUTPUT_FILE_NAME, buf_cwd);
+		}
+		else {
+			printf("Could not find files to consolidate! Working directory: %s\n", buf_cwd);
+		}
+	}
+	else {
+		printf("Did not consolidate files due to %d error(s) present.\n", total_failed);
+	}
 
 	return total_failed;
 }

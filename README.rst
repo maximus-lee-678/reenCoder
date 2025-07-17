@@ -9,7 +9,7 @@ A re-implementation of the Unicode standard in C, originally created to deal wit
 
 🏭 Usage
 ---------
-- Get the condensed header/source files from the `Releases <https://github.com/maximus-lee-678/reenCoder/releases>`_ tab. (🛠️ Working on automated condensation, v1.0 is hand-assembled)
+- Get the condensed header/source files from the `Releases <https://github.com/maximus-lee-678/reenCoder/releases>`_ tab.
 - Add these files to your C project.
 
 1. Functionality is exposed through the ReencoderUnicodeStruct struct.
@@ -68,6 +68,15 @@ More detailed usage instructions can be found in the header file or the online d
 📕 Documentation
 -----------------
 (🛠️) website docs soon?
+
+
+🔢 Cloning
+-----------
+This project uses `Consolidator <https://github.com/maximus-lee-678/Consolidator>`_ as a submodule.
+
+.. code-block:: console
+
+  git clone --recurse-submodules https://github.com/maximus-lee-678/reenCoder.git
 
 🖥️ VS2022 Setup
 ---------------
