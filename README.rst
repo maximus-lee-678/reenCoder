@@ -1,6 +1,7 @@
 � reenCoder
 ===========
-A re-implementation of the Unicode standard in C, originally created to deal with UTF-16 in id3v2.3.0 tags.
+| A re-implementation of the Unicode standard in C, originally created to deal with UTF-16 in id3v2.3.0 tags.
+| Provided as a single portable header for ease of use.
 
 - Allows for processing of, replacement of malformed characters, and conversion between UTF-8, UTF-16, and UTF-32 string encodings.
 - Being a Windows utility library, also comes with some helper functions to display UTF-8 instead of mojibake in the CMD prompt.
@@ -9,8 +10,8 @@ A re-implementation of the Unicode standard in C, originally created to deal wit
 
 🏭 Usage
 ---------
-- Get the condensed header/source files from the `Releases <https://github.com/maximus-lee-678/reenCoder/releases>`_ tab.
-- Add these files to your C project.
+- Get the condensed header file from the `Releases <https://github.com/maximus-lee-678/reenCoder/releases>`_ tab.
+- Add the file to your C project.
 
 1. Functionality is exposed through the ReencoderUnicodeStruct struct.
 2. To initialise a struct, use the following:
