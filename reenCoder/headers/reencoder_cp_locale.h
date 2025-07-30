@@ -18,7 +18,7 @@
  * 
  * @return void
  */
-void reencoder_locale_init_utf8();
+void reencoder_locale_init_utf8(void);
 
 /**
  * @brief Express deinitialisation function that reverts locale and code page changes made by _reencoder_locale_set_locale_utf8().
@@ -28,4 +28,4 @@ void reencoder_locale_init_utf8();
  *
  * @return void
  */
-void reencoder_locale_deinit();
+void reencoder_locale_deinit(void);

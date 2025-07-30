@@ -235,7 +235,7 @@ size_t reencoder_write_to_file(ReencoderUnicodeStruct* unicode_struct, FILE* fil
  *
  * @return 1 if the system is little-endian, 0 if the system is big-endian.
  */
-uint8_t reencoder_is_system_little_endian();
+uint8_t reencoder_is_system_little_endian(void);
 
 /**
  * @brief Initialises a `ReencoderUnicodeStruct` with the provided string type.

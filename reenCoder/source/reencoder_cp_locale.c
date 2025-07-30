@@ -7,59 +7,59 @@
 /**
  * @brief Sets the locale of the program to UTF-8, overriding default code page usage for certain functions such as mkdir or fopen.
  */
-static void _reencoder_locale_set_locale_utf8();
+static void _reencoder_locale_set_locale_utf8(void);
 
 /**
  * @brief Reverts locale to system defaults.
  */
-static void _reencoder_locale_unset_locale();
+static void _reencoder_locale_unset_locale(void);
 
 /**
  * @brief Gets the default code page of the console.
  */
-static void _reencoder_locale_get_default_cp();
+static void _reencoder_locale_get_default_cp(void);
 
 /**
  * @brief Sets the code page of the console to UTF-8, allowing for proper display of UTF-8 characters.
  */
-static void _reencoder_locale_set_cp_utf8();
+static void _reencoder_locale_set_cp_utf8(void);
 
 /**
  * @brief Reverts to default code page. No-op if default code page is uninitialised.
  */
-static void _reencoder_locale_unset_cp();
+static void _reencoder_locale_unset_cp(void);
 
 #define CP_UNINITIALISED -1
 static int _console_default_code_page = CP_UNINITIALISED;
 
-void reencoder_locale_init_utf8() {
+void reencoder_locale_init_utf8(void) {
 	_reencoder_locale_get_default_cp();
 	_reencoder_locale_set_cp_utf8();
 	_reencoder_locale_set_locale_utf8();
 }
 
-void reencoder_locale_deinit() {
+void reencoder_locale_deinit(void) {
 	_reencoder_locale_unset_cp();
 	_reencoder_locale_unset_locale();
 }
 
-static void _reencoder_locale_set_locale_utf8() {
+static void _reencoder_locale_set_locale_utf8(void) {
 	setlocale(LC_ALL, _REENCODER_LOCALE_UTF8);
 }
 
-static void _reencoder_locale_unset_locale() {
+static void _reencoder_locale_unset_locale(void) {
 	setlocale(LC_ALL, "");
 }
 
-static void _reencoder_locale_get_default_cp() {
+static void _reencoder_locale_get_default_cp(void) {
 	_console_default_code_page = GetConsoleCP();
 }
 
-static void _reencoder_locale_set_cp_utf8() {
+static void _reencoder_locale_set_cp_utf8(void) {
 	SetConsoleOutputCP(CP_UTF8);
 }
 
-static void _reencoder_locale_unset_cp() {
+static void _reencoder_locale_unset_cp(void) {
 	if (_console_default_code_page != CP_UNINITIALISED) {
 		SetConsoleOutputCP(_console_default_code_page);
 	}
@@ -69,11 +69,11 @@ static void _reencoder_locale_unset_cp() {
 
 #if defined(__unix__)
 
-void reencoder_locale_init_utf8() {
+void reencoder_locale_init_utf8(void) {
 	return;
 }
 
-void reencoder_locale_deinit() {
+void reencoder_locale_deinit(void) {
 	return;
 }
 

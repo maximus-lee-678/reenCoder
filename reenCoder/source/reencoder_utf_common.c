@@ -221,6 +221,9 @@ unsigned int reencoder_repair_struct(ReencoderUnicodeStruct* unicode_struct) {
 		source_encoding = reencoder_is_system_little_endian() ? UTF_32LE : UTF_32BE;
 		string_num_code_units = unicode_struct->num_bytes / sizeof(uint32_t);
 	}
+	else {
+		return REENCODER_REPAIR_FAILURE_NO_STRUCT;
+	}
 
 	// change encoding, mistakes will be converted to the replacement character
 	if (_reencoder_change_encoding_dynamic(
@@ -371,7 +374,7 @@ size_t reencoder_write_to_file(ReencoderUnicodeStruct* unicode_struct, FILE* fp_
 	return num_bytes_written_bom + num_bytes_written;
 }
 
-uint8_t reencoder_is_system_little_endian() {
+uint8_t reencoder_is_system_little_endian(void) {
 	// [Use Case] End-user Function
 	// [End-user Function Tested?] No (not planned)
 
