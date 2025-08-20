@@ -281,7 +281,7 @@ ReencoderUnicodeStruct* _reencoder_unicode_struct_express_populate(enum Reencode
  * and by element_size bytes when allocate_only_one_unit is set.
  *
  * @param[in] buffer Buffer to expand. Can be NULL.
- * @param[in/out] current_buffer_size Current size of the buffer. Is updated to the new size during function call.
+ * @param[in,out] current_buffer_size Current size of the buffer. Is updated to the new size during function call.
  * @param[in] allocate_only_one_unit Whether or not to allocate only one unit of memory, particularly just for the null-terminator.
  * @param[in] element_size Size of one unit in caller's context. Use sizeof(uint8_t), sizeof(uint16_t), or sizeof(uint32_t) as appropriate.
  *
@@ -302,7 +302,7 @@ void* _reencoder_grow_buffer(void* buffer, size_t* buffer_size_bytes, unsigned i
  *
  * @param[in] string_type Specifies encoding type (UTF-8, UTF_16BE, UTF_16LE, UTF_32BE, or UTF_32LE).
  * @param[in] buffer Buffer to expand. Can be NULL.
- * @param[in/out] buffer_size_bytes Current maximum size of the buffer. Is updated to the new size during function call.
+ * @param[in,out] buffer_size_bytes Current maximum size of the buffer. Is updated to the new size during function call.
  * @param[in] buffer_current_index Current occupied size of the buffer in bytes.
  * @param[in] allocate_only_one_unit Whether or not to allocate only one unit of memory, particularly just for the null-terminator.
  *
